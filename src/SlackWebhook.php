@@ -104,6 +104,8 @@ class SlackWebhook
      */
     protected function fields(SlackAttachment $attachment)
     {
+    	if (!is_array($attachment->fields)) return;
+
         return array_values($this->map($attachment->fields, function ($value, $key) {
             if ($value instanceof SlackAttachmentField) {
                 return $value->toArray();

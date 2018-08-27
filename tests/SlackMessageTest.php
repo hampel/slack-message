@@ -53,7 +53,7 @@ class SlackMessageTest extends TestCase
     public function testCorrectPayloadIsSentToSlackStandalone(SlackMessage $message, array $payload)
     {
         $this->guzzleHttpInterface->shouldReceive('post')->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
-            $this->assertEquals($argUrl, 'url');
+        	$this->assertEquals($argUrl, 'url');
             $this->assertEquals($argPayload, $payload);
         });
         $this->slackWebhook->send('url', $message);
@@ -65,6 +65,7 @@ class SlackMessageTest extends TestCase
             'payloadWithIcon' => $this->getPayloadWithIcon(),
             'payloadWithImageIcon' => $this->getPayloadWithImageIcon(),
             'payloadWithoutOptionalFields' => $this->getPayloadWithoutOptionalFields(),
+            'payloadWithoutFields' => $this->getPayloadWithoutFields(),
             'payloadWithAttachmentFieldBuilder' => $this->getPayloadWithAttachmentFieldBuilder(),
         ];
     }
@@ -80,10 +81,15 @@ class SlackMessageTest extends TestCase
     	$payloadWithoutOptionalFields = $this->getPayloadWithoutOptionalFields();
     	$payloadWithoutOptionalFields[0] = SlackMessage::fromLaravel($payloadWithoutOptionalFields[0]->toSlack(new NotificationSlackChannelTestNotifiable));
 
+    	$payloadWithoutFields = $this->getPayloadWithoutFields();
+    	$payloadWithoutFields[0] = SlackMessage::fromLaravel($payloadWithoutFields[0]->toSlack(new NotificationSlackChannelTestNotifiable));
+
+    	$payloadWithoutFieldsStandalone = $this->getPayloadWithoutFieldsStandalone();
+
     	$payloadWithAttachmentFieldBuilder = $this->getPayloadWithAttachmentFieldBuilder();
     	$payloadWithAttachmentFieldBuilder[0] = SlackMessage::fromLaravel($payloadWithAttachmentFieldBuilder[0]->toSlack(new NotificationSlackChannelTestNotifiable));
 
-        return compact('payloadWithIcon', 'payloadWithImageIcon', 'payloadWithoutOptionalFields', 'payloadWithAttachmentFieldBuilder');
+        return compact('payloadWithIcon', 'payloadWithImageIcon', 'payloadWithoutOptionalFields', 'payloadWithoutFields', 'payloadWithoutFieldsStandalone', 'payloadWithAttachmentFieldBuilder');
     }
 
     private function getPayloadWithIcon()
@@ -174,6 +180,46 @@ class SlackMessageTest extends TestCase
                                     'short' => true,
                                 ],
                             ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+    private function getPayloadWithoutFields()
+    {
+        return [
+            new NotificationSlackChannelWithoutFieldsTestNotification,
+            [
+                'json' => [
+                    'text' => 'Content',
+                    'attachments' => [
+                        [
+                            'title' => 'Laravel',
+                            'title_link' => 'https://laravel.com',
+                            'text' => 'Attachment Content',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+    }
+    private function getPayloadWithoutFieldsStandalone()
+    {
+        return [
+             (new SlackMessage())->content('Content')
+                                 ->attachment(function ($attachment) {
+                                 	    $attachment->title('Laravel', 'https://laravel.com')
+                                                   ->content('Attachment Content');
+                                 }),
+            [
+                'json' => [
+                    'text' => 'Content',
+                    'attachments' => [
+                        [
+                            'title' => 'Laravel',
+                            'title_link' => 'https://laravel.com',
+                            'text' => 'Attachment Content',
                         ],
                     ],
                 ],
@@ -286,6 +332,18 @@ class NotificationSlackChannelWithoutOptionalFieldsTestNotification extends Noti
                                    ->fields([
                                         'Project' => 'Laravel',
                                     ]);
+                    });
+    }
+}
+class NotificationSlackChannelWithoutFieldsTestNotification extends Notification
+{
+    public function toSlack($notifiable)
+    {
+        return (new \Illuminate\Notifications\Messages\SlackMessage())
+                    ->content('Content')
+                    ->attachment(function ($attachment) {
+                        $attachment->title('Laravel', 'https://laravel.com')
+                                   ->content('Attachment Content');
                     });
     }
 }

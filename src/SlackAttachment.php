@@ -341,15 +341,18 @@ class SlackAttachment
     	$attachment->fallback = $laravelAttachment->fallback;
     	$attachment->color = $laravelAttachment->color;
 
-    	foreach ($laravelAttachment->fields as $title => $content)
+    	if (is_array($laravelAttachment->fields))
 	    {
-	    	if (is_object($content) && $content instanceof \Illuminate\Notifications\Messages\SlackAttachmentField)
+	        foreach ($laravelAttachment->fields as $title => $content)
 		    {
-			    $attachment->fields[] = SlackAttachmentField::fromLaravel($content);
-		    }
-		    else
-		    {
-		    	$attachment->fields[$title] = $content;
+		        if (is_object($content) && $content instanceof \Illuminate\Notifications\Messages\SlackAttachmentField)
+			    {
+				    $attachment->fields[] = SlackAttachmentField::fromLaravel($content);
+			    }
+			    else
+			    {
+			        $attachment->fields[$title] = $content;
+			    }
 		    }
 	    }
 
