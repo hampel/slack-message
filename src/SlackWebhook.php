@@ -6,24 +6,24 @@
  * @see https://laravel.com/docs/5.6/notifications#slack-notifications
  */
 
-use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Client;
 
 class SlackWebhook
 {
     /**
      * The HTTP client instance.
      *
-     * @var \GuzzleHttp\ClientInterface
+     * @var \GuzzleHttp\Client
      */
     protected $http;
 
     /**
      * Create a new Slack channel instance.
      *
-     * @param  \GuzzleHttp\ClientInterface  $http
+     * @param  \GuzzleHttp\Client  $http
      * @return void
      */
-    public function __construct(ClientInterface $http)
+    public function __construct(Client $http)
     {
         $this->http = $http;
     }

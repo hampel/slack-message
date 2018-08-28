@@ -26,9 +26,7 @@ class SlackMessageTest extends TestCase
         parent::setUp();
         $this->guzzleHttp = Mockery::mock('GuzzleHttp\Client');
         $this->slackChannel = new \Illuminate\Notifications\Channels\SlackWebhookChannel($this->guzzleHttp);
-
-        $this->guzzleHttpInterface = Mockery::mock('GuzzleHttp\ClientInterface');
-        $this->slackWebhook = new \Hampel\SlackMessage\SlackWebhook($this->guzzleHttpInterface);
+        $this->slackWebhook = new \Hampel\SlackMessage\SlackWebhook($this->guzzleHttp);
     }
 
     /**
@@ -52,7 +50,7 @@ class SlackMessageTest extends TestCase
      */
     public function testCorrectPayloadIsSentToSlackStandalone(SlackMessage $message, array $payload)
     {
-        $this->guzzleHttpInterface->shouldReceive('post')->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
+        $this->guzzleHttp->shouldReceive('post')->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
         	$this->assertEquals($argUrl, 'url');
             $this->assertEquals($argPayload, $payload);
         });
