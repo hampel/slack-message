@@ -14,8 +14,7 @@ under the [MIT license](https://opensource.org/licenses/MIT).
 Prerequisites
 -------------
 
-You will need to supply a Guzzle-compatible implementation to send the Slack messages - something which implements the
-`GuzzleHttp\ClientInterface` interface - or just use Guzzle! 
+You will need to supply a Guzzle client (v6.x) to send the Slack messages.
 
 Installation
 ------------
