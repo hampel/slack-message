@@ -46,7 +46,7 @@ class SlackWebhook
      * @param  SlackMessage  $message
      * @return array
      */
-    protected function buildJsonPayload(SlackMessage $message)
+    public function buildJsonPayload(SlackMessage $message)
     {
         $optionalFields = array_filter([
             'channel' => $message->channel,
