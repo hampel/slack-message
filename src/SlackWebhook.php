@@ -37,7 +37,12 @@ class SlackWebhook
      */
     public function send($url, SlackMessage $message)
     {
-        $this->http->post($url, $this->buildJsonPayload($message));
+        return $this->sendPayload($url, $this->buildJsonPayload($message));
+    }
+
+    public function sendPayload($url, array $payload)
+    {
+    	return $this->http->post($url, $payload);
     }
 
     /**
