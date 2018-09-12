@@ -51,20 +51,24 @@ need to use Notifiable classes - we can generate and send our Slack Messages dir
 	$url = 'https://hooks.slack.com/services/<Slack incoming webhook url>';
 	$slack = new SlackWebhook(new Client());
 	
-	$message =  (new SlackMessage())->content('Content')
-									->attachment(function ($attachment) {
-										$attachment->title('Laravel', 'https://laravel.com')
-												   ->content('Attachment Content')
-												   ->fallback('Attachment Fallback')
-												   ->fields([
-														'Project' => 'Laravel',
-												   ])
-												   ->footer('Laravel')
-												   ->footerIcon('https://laravel.com/fake.png')
-												   ->markdown(['text'])
-												   ->author('Author', 'https://laravel.com/fake_author', 'https://laravel.com/fake_author.png')
-												   ->timestamp(Carbon::now());
-									});
+	$message = $slack->message(function ($message) {
+		$message
+			->content('Content')
+			->attachment(function ($attachment) {
+				$attachment
+					->title('Laravel', 'https://laravel.com')
+					->content('Attachment Content')
+					->fallback('Attachment Fallback')
+					->fields([
+						'Project' => 'Laravel',
+					])
+					->footer('Laravel')
+					->footerIcon('https://laravel.com/fake.png')
+					->markdown(['text'])
+					->author('Author', 'https://laravel.com/fake_author', 'https://laravel.com/fake_author.png')
+					->timestamp(Carbon::now());
+			});
+	});
 	
 	$slack->send($url, $message);
 
