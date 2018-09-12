@@ -28,6 +28,19 @@ class SlackWebhook
         $this->http = $http;
     }
 
+	/**
+	 * @param \Closure $callback
+	 *
+	 * @return SlackMessage
+	 */
+	public function message(\Closure $callback)
+	{
+		$message = new SlackMessage();
+		$callback($message);
+
+		return $message;
+	}
+
     /**
      * Send the given notification.
      *
