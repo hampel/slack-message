@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+1.0.3 (2018-09-13)
+------------------
+
+* added message builder function to SlackWebhook
+
 1.0.2 (2018-08-28)
 ------------------
 
