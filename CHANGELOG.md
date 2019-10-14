@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+1.1.0 (2019-10-14)
+------------------
+
+* don't require illuminate/notifications - use laravel/slack-notification-channel instead
+* use PHPUnit v8
+
 1.0.3 (2018-09-13)
 ------------------
 
