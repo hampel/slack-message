@@ -8,7 +8,7 @@ This package provides a mechanism for generating correctly formatted Slack messa
 for use with simple Slack [inbound webhooks](https://api.slack.com/incoming-webhooks), but can also be used with API 
 calls.
 
-By [Simon Hampel](mailto:simon@hampelgroup.com) based on code by [Taylor Otwell](mailto:taylor@laravel.com) and licensed 
+By [Simon Hampel](https://twitter.com/SimonHampel) based on code by [Taylor Otwell](mailto:taylor@laravel.com) and licensed 
 under the [MIT license](https://opensource.org/licenses/MIT).
 
 Prerequisites
@@ -38,7 +38,7 @@ Run Composer to update the new requirement.
 Usage
 -----
 
-Refer to Laravel's [Slack Notifications](https://laravel.com/docs/5.6/notifications#slack-notifications) documentation 
+Refer to Laravel's [Slack Notifications](https://laravel.com/docs/6.x/notifications#slack-notifications) documentation 
 for information on generating Slack messages. The syntax is largely the same as that used by Laravel, but we do not 
 need to use Notifiable classes - we can generate and send our Slack Messages directly.
 
@@ -77,6 +77,5 @@ References
 
 * [Slack API documentation](https://api.slack.com/)
 * Slack API: [An introduction to messages](https://api.slack.com/docs/messages)
-* Laravel: [Slack Notifications](https://laravel.com/docs/5.6/notifications#slack-notifications)
-* Laravel: [illuminate/notifications](https://github.com/illuminate/notifications) subtree split
-* Laravel Framework (5.6): [framework / src / Illuminate / Notifications](https://github.com/laravel/framework/tree/5.6/src/Illuminate/Notifications) 
+* Laravel: [Slack Notifications](https://laravel.com/docs/6.x/notifications#slack-notifications)
+* Laravel Package: [laravel/slack-notification-channel](https://github.com/laravel/slack-notification-channel) 
