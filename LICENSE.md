@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) Simon Hampel
+Copyright (c) Simon Hampel\
 Copyright (c) Taylor Otwell
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
