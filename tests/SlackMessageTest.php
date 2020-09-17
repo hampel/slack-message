@@ -1,5 +1,6 @@
 <?php namespace Hampel\SlackMessage;
 
+use GuzzleHttp\Psr7\Response;
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
 use Illuminate\Notifications\Notification;
@@ -41,6 +42,7 @@ class SlackMessageTest extends TestCase
         $this->guzzleHttp->shouldReceive('post')->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
             $this->assertEquals($argUrl, 'url');
             $this->assertEquals($argPayload, $payload);
+            return new Response();
         });
         $this->slackChannel->send(new NotificationSlackChannelTestNotifiable, $notification);
     }
@@ -55,6 +57,7 @@ class SlackMessageTest extends TestCase
         $this->guzzleHttp->shouldReceive('post')->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
         	$this->assertEquals($argUrl, 'url');
             $this->assertEquals($argPayload, $payload);
+            return new Response();
         });
         $this->slackWebhook->send('url', $message);
     }
