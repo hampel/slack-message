@@ -62,40 +62,40 @@ class SlackMessageTest extends TestCase
         $this->slackWebhook->send('url', $message);
     }
 
-    public function payloadDataProviderLaravel()
+    public static function payloadDataProviderLaravel()
     {
         return [
-            'payloadWithIcon' => $this->getPayloadWithIcon(),
-            'payloadWithImageIcon' => $this->getPayloadWithImageIcon(),
-            'payloadWithoutOptionalFields' => $this->getPayloadWithoutOptionalFields(),
-            'payloadWithoutFields' => $this->getPayloadWithoutFields(),
-            'payloadWithAttachmentFieldBuilder' => $this->getPayloadWithAttachmentFieldBuilder(),
+            'payloadWithIcon' => self::getPayloadWithIcon(),
+            'payloadWithImageIcon' => self::getPayloadWithImageIcon(),
+            'payloadWithoutOptionalFields' => self::getPayloadWithoutOptionalFields(),
+            'payloadWithoutFields' => self::getPayloadWithoutFields(),
+            'payloadWithAttachmentFieldBuilder' => self::getPayloadWithAttachmentFieldBuilder(),
         ];
     }
 
-    public function payloadDataProviderStandalone()
+    public static function payloadDataProviderStandalone()
     {
-    	$payloadWithIcon = $this->getPayloadWithIcon();
+    	$payloadWithIcon = self::getPayloadWithIcon();
     	$payloadWithIcon[0] = SlackMessage::fromLaravel($payloadWithIcon[0]->toSlack(new NotificationSlackChannelTestNotifiable));
 
-    	$payloadWithImageIcon = $this->getPayloadWithImageIcon();
+    	$payloadWithImageIcon = self::getPayloadWithImageIcon();
     	$payloadWithImageIcon[0] = SlackMessage::fromLaravel($payloadWithImageIcon[0]->toSlack(new NotificationSlackChannelTestNotifiable));
 
-    	$payloadWithoutOptionalFields = $this->getPayloadWithoutOptionalFields();
+    	$payloadWithoutOptionalFields = self::getPayloadWithoutOptionalFields();
     	$payloadWithoutOptionalFields[0] = SlackMessage::fromLaravel($payloadWithoutOptionalFields[0]->toSlack(new NotificationSlackChannelTestNotifiable));
 
-    	$payloadWithoutFields = $this->getPayloadWithoutFields();
+    	$payloadWithoutFields = self::getPayloadWithoutFields();
     	$payloadWithoutFields[0] = SlackMessage::fromLaravel($payloadWithoutFields[0]->toSlack(new NotificationSlackChannelTestNotifiable));
 
-    	$payloadWithoutFieldsStandalone = $this->getPayloadWithoutFieldsStandalone();
+    	$payloadWithoutFieldsStandalone = self::getPayloadWithoutFieldsStandalone();
 
-    	$payloadWithAttachmentFieldBuilder = $this->getPayloadWithAttachmentFieldBuilder();
+    	$payloadWithAttachmentFieldBuilder = self::getPayloadWithAttachmentFieldBuilder();
     	$payloadWithAttachmentFieldBuilder[0] = SlackMessage::fromLaravel($payloadWithAttachmentFieldBuilder[0]->toSlack(new NotificationSlackChannelTestNotifiable));
 
         return compact('payloadWithIcon', 'payloadWithImageIcon', 'payloadWithoutOptionalFields', 'payloadWithoutFields', 'payloadWithoutFieldsStandalone', 'payloadWithAttachmentFieldBuilder');
     }
 
-    private function getPayloadWithIcon()
+    private static function getPayloadWithIcon()
     {
         return [
             new NotificationSlackChannelTestNotification,
@@ -131,7 +131,7 @@ class SlackMessageTest extends TestCase
             ],
         ];
     }
-    private function getPayloadWithImageIcon()
+    private static function getPayloadWithImageIcon()
     {
         return [
             new NotificationSlackChannelTestNotificationWithImageIcon,
@@ -164,7 +164,7 @@ class SlackMessageTest extends TestCase
             ],
         ];
     }
-    private function getPayloadWithoutOptionalFields()
+    private static function getPayloadWithoutOptionalFields()
     {
         return [
             new NotificationSlackChannelWithoutOptionalFieldsTestNotification,
@@ -189,7 +189,7 @@ class SlackMessageTest extends TestCase
             ],
         ];
     }
-    private function getPayloadWithoutFields()
+    private static function getPayloadWithoutFields()
     {
         return [
             new NotificationSlackChannelWithoutFieldsTestNotification,
@@ -207,7 +207,7 @@ class SlackMessageTest extends TestCase
             ],
         ];
     }
-    private function getPayloadWithoutFieldsStandalone()
+    private static function getPayloadWithoutFieldsStandalone()
     {
         return [
              (new SlackMessage())->content('Content')
@@ -229,7 +229,7 @@ class SlackMessageTest extends TestCase
             ],
         ];
     }
-    public function getPayloadWithAttachmentFieldBuilder()
+    public static function getPayloadWithAttachmentFieldBuilder()
     {
         return [
             new NotificationSlackChannelWithAttachmentFieldBuilderTestNotification,
