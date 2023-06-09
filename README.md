@@ -3,7 +3,7 @@ Slack Message Builder
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/hampel/slack-message.svg?style=flat-square)](https://packagist.org/packages/hampel/slack-message)
 [![Total Downloads](https://img.shields.io/packagist/dt/hampel/slack-message.svg?style=flat-square)](https://packagist.org/packages/hampel/slack-message)
-[![Open Issues](https://img.shields.io/bitbucket/issues/hampel/slack-message.svg?style=flat-square)](https://bitbucket.org/hampel/slack-message/issues)
+[![Open Issues](https://img.shields.io/github/issues-raw/hampel/slack-message.svg?style=flat-square)](https://github.com/hampel/slack-message/issues)
 [![License](https://img.shields.io/packagist/l/hampel/slack-message.svg?style=flat-square)](https://packagist.org/packages/hampel/slack-message)
 
 Standalone implementation of Laravel's SlackMessage classes from 

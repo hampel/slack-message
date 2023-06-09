@@ -1,7 +1,7 @@
 {
     "name": "hampel/slack-message",
     "description": "Standalone implementation of Laravel's SlackMessage classes from illuminate/notifications",
-	"homepage" : "https://bitbucket.org/hampel/slack-message",
+	"homepage" : "https://github.com/hampel/slack-message",
 	"authors": [
 		{
 			"name": "Simon Hampel",
@@ -13,8 +13,8 @@
         }
 	],
 	"support": {
-		"issues": "https://bitbucket.org/hampel/slack-message/issues",
-		"source": "https://bitbucket.org/hampel/slack-message/src"
+		"issues": "https://github.com/hampel/slack-message/issues",
+		"source": "https://github.com/hampel/slack-message"
 	},
 	"keywords": [
 		"slack",
