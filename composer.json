@@ -18,7 +18,8 @@
 	},
 	"keywords": [
 		"slack",
-		"laravel"
+		"laravel",
+        "notifications"
 	],
 	"license" : [
 		"MIT"
