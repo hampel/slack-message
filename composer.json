@@ -42,7 +42,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Hampel\\SlackMessage\\": "tests/"
+            "Tests\\": "tests/"
         }
 	},
  	"minimum-stability": "dev",

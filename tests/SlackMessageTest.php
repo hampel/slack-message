@@ -1,6 +1,7 @@
-<?php namespace Hampel\SlackMessage;
+<?php namespace Tests;
 
 use GuzzleHttp\Psr7\Response;
+use Hampel\SlackMessage\SlackMessage;
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
 use Illuminate\Notifications\Notification;
