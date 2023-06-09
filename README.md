@@ -13,7 +13,7 @@ This package provides a mechanism for generating correctly formatted Slack messa
 for use with simple Slack [inbound webhooks](https://api.slack.com/incoming-webhooks), but can also be used with API 
 calls.
 
-By [Simon Hampel](https://twitter.com/SimonHampel) based on code by [Taylor Otwell](mailto:taylor@laravel.com) and licensed 
+By [Simon Hampel](mailto:simon@hampelgroup.com) based on code by [Taylor Otwell](mailto:taylor@laravel.com) and licensed 
 under the [MIT license](https://opensource.org/licenses/MIT).
 
 Prerequisites
