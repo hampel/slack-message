@@ -24,21 +24,9 @@ You will need to supply a Guzzle client (v6.x) to send the Slack messages.
 Installation
 ------------
 
-The recommended way of installing the Slack Message Builder package is through [Composer](http://getcomposer.org):
+To install using composer, run the following command:
 
-Require the package via Composer in your `composer.json`
-
-    :::json
-    {
-        "require": {
-            "hampel/slack-message": "^1.0"
-        }
-    }
-
-Run Composer to update the new requirement.
-
-    :::bash
-    $ composer update
+`composer require hampel/slack-message`
 
 Usage
 -----
