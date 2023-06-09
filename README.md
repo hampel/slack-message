@@ -35,35 +35,36 @@ Refer to Laravel's [Slack Notifications](https://laravel.com/docs/6.x/notificati
 for information on generating Slack messages. The syntax is largely the same as that used by Laravel, but we do not 
 need to use Notifiable classes - we can generate and send our Slack Messages directly.
 
-	:::php
-	use Carbon\Carbon;
-	use GuzzleHttp\Client;
-	use Hampel\SlackMessage\SlackMessage;
-	use Hampel\SlackMessage\SlackWebhook;
-	
-	$url = 'https://hooks.slack.com/services/<Slack incoming webhook url>';
-	$slack = new SlackWebhook(new Client());
-	
-	$message = $slack->message(function ($message) {
-		$message
-			->content('Content')
-			->attachment(function ($attachment) {
-				$attachment
-					->title('Laravel', 'https://laravel.com')
-					->content('Attachment Content')
-					->fallback('Attachment Fallback')
-					->fields([
-						'Project' => 'Laravel',
-					])
-					->footer('Laravel')
-					->footerIcon('https://laravel.com/fake.png')
-					->markdown(['text'])
-					->author('Author', 'https://laravel.com/fake_author', 'https://laravel.com/fake_author.png')
-					->timestamp(Carbon::now());
-			});
-	});
-	
-	$slack->send($url, $message);
+```php
+use Carbon\Carbon;
+use GuzzleHttp\Client;
+use Hampel\SlackMessage\SlackMessage;
+use Hampel\SlackMessage\SlackWebhook;
+
+$url = 'https://hooks.slack.com/services/<Slack incoming webhook url>';
+$slack = new SlackWebhook(new Client());
+
+$message = $slack->message(function ($message) {
+    $message
+        ->content('Content')
+        ->attachment(function ($attachment) {
+            $attachment
+                ->title('Laravel', 'https://laravel.com')
+                ->content('Attachment Content')
+                ->fallback('Attachment Fallback')
+                ->fields([
+                    'Project' => 'Laravel',
+                ])
+                ->footer('Laravel')
+                ->footerIcon('https://laravel.com/fake.png')
+                ->markdown(['text'])
+                ->author('Author', 'https://laravel.com/fake_author', 'https://laravel.com/fake_author.png')
+                ->timestamp(Carbon::now());
+        });
+});
+
+$slack->send($url, $message);
+```
 
 References
 ----------
