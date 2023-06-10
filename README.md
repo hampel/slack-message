@@ -19,7 +19,7 @@ under the [MIT license](https://opensource.org/licenses/MIT).
 Prerequisites
 -------------
 
-You will need to supply a Guzzle client (v6.x) to send the Slack messages.
+You will need to supply a Guzzle client (^6.0|^7.0) to send the Slack messages.
 
 Installation
 ------------
