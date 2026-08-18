@@ -1,4 +1,4 @@
-<?php namespace Tests;
+<?php namespace Hampel\SlackMessage\Tests;
 
 use GuzzleHttp\Psr7\Response;
 use Hampel\SlackMessage\SlackMessage;
