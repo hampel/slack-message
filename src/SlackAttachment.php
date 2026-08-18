@@ -6,8 +6,6 @@
  * @see https://laravel.com/docs/5.6/notifications#slack-notifications
  */
 
-use Carbon\Carbon;
-
 class SlackAttachment
 {
     /**
@@ -311,14 +309,11 @@ class SlackAttachment
     /**
      * Set the timestamp.
      *
-     * Note - this is Laravel 5.4 functionality, this function was changed in Laravel 5.5 to use the
-     * Illuminate\Support\InteractsWithTime trait
-     *
-     * @param  Carbon  $timestamp
+     * @param  \DateTimeInterface  $timestamp
      *
      * @return $this
      */
-    public function timestamp(Carbon $timestamp)
+    public function timestamp(\DateTimeInterface $timestamp)
     {
         $this->timestamp = $timestamp->getTimestamp();
         return $this;
