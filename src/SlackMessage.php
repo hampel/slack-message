@@ -76,14 +76,14 @@ class SlackMessage
     /**
      * The message's attachments.
      *
-     * @var array
+     * @var array<int, SlackAttachment>
      */
     public $attachments = [];
 
     /**
      * Additional request options for the Guzzle HTTP client.
      *
-     * @var array
+     * @var array<string, mixed>
      */
     public $http = [];
 
@@ -222,6 +222,8 @@ class SlackMessage
             case 'warning':
                 return 'warning';
         }
+
+        return null;
     }
 
     /**
@@ -265,7 +267,7 @@ class SlackMessage
     /**
      * Set additional request options for the Guzzle HTTP client.
      *
-     * @param  array  $options
+     * @param  array<string, mixed>  $options
      * @return $this
      */
     public function http(array $options)
@@ -290,7 +292,7 @@ class SlackMessage
     	$message->image = $laravelMessage->image;
     	$message->channel = $laravelMessage->channel;
     	$message->content = $laravelMessage->content;
-    	$message->linkNames = $laravelMessage->linkNames;
+    	$message->linkNames = (int) $laravelMessage->linkNames;
     	$message->unfurlLinks = $laravelMessage->unfurlLinks;
     	$message->unfurlMedia = $laravelMessage->unfurlMedia;
     	foreach ($laravelMessage->attachments as $laravelAttachment)

@@ -53,6 +53,13 @@ class SlackWebhook
         return $this->sendPayload($url, $this->buildJsonPayload($message));
     }
 
+    /**
+     * Send a pre-built payload to the Slack webhook.
+     *
+     * @param  string  $url
+     * @param  array<string, mixed>  $payload
+     * @return \Psr\Http\Message\ResponseInterface
+     */
     public function sendPayload($url, array $payload)
     {
     	return $this->http->post($url, $payload);
@@ -62,7 +69,7 @@ class SlackWebhook
      * Build up a JSON payload for the Slack webhook.
      *
      * @param  SlackMessage  $message
-     * @return array
+     * @return array<string, mixed>
      */
     public function buildJsonPayload(SlackMessage $message)
     {
@@ -88,7 +95,7 @@ class SlackWebhook
      * Format the message's attachments.
      *
      * @param  SlackMessage  $message
-     * @return array
+     * @return array<int, array<string, mixed>>
      */
     protected function attachments(SlackMessage $message)
     {
@@ -118,11 +125,11 @@ class SlackWebhook
      * Format the attachment's fields.
      *
      * @param  SlackAttachment  $attachment
-     * @return array
+     * @return array<int, mixed>|null
      */
     protected function fields(SlackAttachment $attachment)
     {
-    	if (!is_array($attachment->fields)) return;
+    	if (!is_array($attachment->fields)) return null;
 
         return array_values($this->map($attachment->fields, function ($value, $key) {
             if ($value instanceof SlackAttachmentField) {
@@ -136,9 +143,13 @@ class SlackWebhook
     /**
      * Run a map over each of the items.
      *
-     * @param  array<array-key, mixed>  $fields
-     * @param  callable  $callback
-     * @return array<array-key, mixed>
+     * @template TKey of array-key
+     * @template TValue
+     * @template TResult
+     *
+     * @param  array<TKey, TValue>  $fields
+     * @param  callable(TValue, TKey): TResult  $callback
+     * @return array<TKey, TResult>
      */
     public function map(array $fields, callable $callback)
     {

@@ -70,7 +70,7 @@ class SlackAttachmentField
     /**
      * Get the array representation of the attachment field.
      *
-     * @return array
+     * @return array{title: string, value: string, short: bool}
      */
     public function toArray()
     {

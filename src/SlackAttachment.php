@@ -60,7 +60,7 @@ class SlackAttachment
     /**
      * The fields containing markdown.
      *
-     * @var array
+     * @var array<int, string>|null
      */
     public $markdown;
 
@@ -214,7 +214,7 @@ class SlackAttachment
     /**
      * Set the fields of the attachment.
      *
-     * @param  array  $fields
+     * @param  array<array-key, string|SlackAttachmentField>  $fields
      * @return $this
      */
     public function fields(array $fields)
@@ -227,7 +227,7 @@ class SlackAttachment
     /**
      * Set the fields containing markdown.
      *
-     * @param  array  $fields
+     * @param  array<int, string>  $fields
      * @return $this
      */
     public function markdown(array $fields)
