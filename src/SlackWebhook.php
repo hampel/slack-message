@@ -136,10 +136,11 @@ class SlackWebhook
     /**
      * Run a map over each of the items.
      *
+     * @param  array<array-key, mixed>  $fields
      * @param  callable  $callback
-     * @return static
+     * @return array<array-key, mixed>
      */
-    public function map($fields, callable $callback)
+    public function map(array $fields, callable $callback)
     {
         $keys = array_keys($fields);
 
