@@ -18,7 +18,7 @@ class SlackAttachment
     /**
      * The attachment's URL.
      *
-     * @var string
+     * @var string|null
      */
     public $url;
 
@@ -53,7 +53,7 @@ class SlackAttachment
     /**
      * The attachment's fields.
      *
-     * @var array
+     * @var array<array-key, string|SlackAttachmentField>|null
      */
     public $fields;
 
@@ -88,14 +88,14 @@ class SlackAttachment
     /**
      * The attachment author's link.
      *
-     * @var string
+     * @var string|null
      */
     public $authorLink;
 
     /**
      * The attachment author's icon.
      *
-     * @var string
+     * @var string|null
      */
     public $authorIcon;
 
@@ -336,7 +336,7 @@ class SlackAttachment
     	$attachment->fallback = $laravelAttachment->fallback;
     	$attachment->color = $laravelAttachment->color;
 
-    	if (is_array($laravelAttachment->fields))
+    	if (!empty($laravelAttachment->fields))
 	    {
 	        foreach ($laravelAttachment->fields as $title => $content)
 		    {

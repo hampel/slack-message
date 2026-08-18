@@ -55,21 +55,21 @@ class SlackMessage
     /**
      * Indicates if channel names and usernames should be linked.
      *
-     * @var bool
+     * @var int
      */
     public $linkNames = 0;
 
     /**
      * Indicates if you want a preview of links inlined in the message.
      *
-     * @var bool
+     * @var bool|null
      */
     public $unfurlLinks;
 
     /**
      * Indicates if you want a preview of links to media inlined in the message.
      *
-     * @var bool
+     * @var bool|null
      */
     public $unfurlMedia;
 
@@ -210,7 +210,7 @@ class SlackMessage
     /**
      * Get the color for the message.
      *
-     * @return string
+     * @return string|null
      */
     public function color()
     {
@@ -237,9 +237,9 @@ class SlackMessage
     }
 
     /**
-     * Find and link channel names and usernames.
+     * Set whether a preview of links should be inlined in the message.
      *
-     * @param  string  $unfurl
+     * @param  bool  $unfurl
      * @return $this
      */
     public function unfurlLinks($unfurl)
@@ -250,9 +250,9 @@ class SlackMessage
     }
 
     /**
-     * Find and link channel names and usernames.
+     * Set whether a preview of links to media should be inlined in the message.
      *
-     * @param  string  $unfurl
+     * @param  bool  $unfurl
      * @return $this
      */
     public function unfurlMedia($unfurl)
