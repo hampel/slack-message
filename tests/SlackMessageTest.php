@@ -3,6 +3,7 @@
 use GuzzleHttp\Psr7\Response;
 use Hampel\SlackMessage\SlackMessage;
 use Mockery as m;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Illuminate\Notifications\Notification;
 
@@ -34,10 +35,10 @@ class SlackMessageTest extends TestCase
     }
 
     /**
-     * @dataProvider payloadDataProviderLaravel
      * @param Notification $notification
      * @param array $payload
      */
+    #[DataProvider('payloadDataProviderLaravel')]
     public function testCorrectPayloadIsSentToSlackLaravel(Notification $notification, array $payload)
     {
         $this->guzzleHttp->shouldReceive('post')->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
@@ -49,10 +50,10 @@ class SlackMessageTest extends TestCase
     }
 
     /**
-     * @dataProvider payloadDataProviderStandalone
-     * @param Notification $notification
+     * @param SlackMessage $message
      * @param array $payload
      */
+    #[DataProvider('payloadDataProviderStandalone')]
     public function testCorrectPayloadIsSentToSlackStandalone(SlackMessage $message, array $payload)
     {
         $this->guzzleHttp->shouldReceive('post')->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
