@@ -12,4 +12,7 @@ composer.lock
 
 /.idea
 /.phpunit.cache
-/CLAUDE.local.md
+
+# Also unanchored: local notes carry internal detail that has no business in a public repo,
+# wherever in the tree they end up.
+CLAUDE.local.md
