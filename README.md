@@ -14,11 +14,18 @@ This package provides a mechanism for generating correctly formatted Slack messa
 PSR-18 HTTP client. Ideal for use with simple Slack [inbound webhooks](https://api.slack.com/incoming-webhooks), but 
 can also be used with API calls.
 
+It implements Slack's attachment-based message format, which Slack now describes as
+[outmoded messaging](https://api.slack.com/legacy/outmoded-messaging) and Laravel has frozen. Attachments still work,
+and for a one-way notification firehose they remain the simplest thing that does. If you need threading, editing a
+message after posting, or interactive buttons, you want Slack's Block Kit and this is not the package for it.
+
 By [Simon Hampel](mailto:simon@hampelgroup.com) based on code by [Taylor Otwell](mailto:taylor@laravel.com) and licensed 
 under the [MIT license](https://opensource.org/licenses/MIT).
 
 Prerequisites
 -------------
+
+PHP 8.3 or later.
 
 You will need to supply a [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP client to send the Slack messages, along
 with the [PSR-17](https://www.php-fig.org/psr/psr-17/) factories used to build the request. Guzzle (^7.0) provides
@@ -78,10 +85,35 @@ $message = $slack->message(function ($message) {
 $slack->send($url, $message);
 ```
 
+Building now, sending later
+---------------------------
+
+`send()` is `buildPayload()` followed by `sendPayload()`, and the two halves are public so that
+they can run in different processes. `buildPayload()` returns the Slack payload as a plain array,
+which survives being JSON encoded into a queue and read back out:
+
+```php
+$payload = $slack->buildPayload($message);
+
+// ... store $payload, hand it to a job queue, come back later ...
+
+$slack->sendPayload($url, $payload);
+```
+
+The payload itself carries nothing client-specific — no headers, no request options, just the
+message Slack will receive.
+
+Version 1 built a payload in the shape of Guzzle request options, wrapped in a `json` key.
+`sendPayload()` still accepts that shape, so a payload queued before an upgrade is not stranded.
+
 References
 ----------
 
 * [Slack API documentation](https://api.slack.com/)
 * Slack API: [An introduction to messages](https://api.slack.com/docs/messages)
 * Laravel: [Slack Notifications](https://laravel.com/docs/6.x/notifications#slack-notifications)
-* Laravel Package: [laravel/slack-notification-channel](https://github.com/laravel/slack-notification-channel) 
+* Laravel Package: [laravel/slack-notification-channel](https://github.com/laravel/slack-notification-channel)
+
+The Laravel documentation is linked at 6.x deliberately. It is the last version that documents the
+attachment API this package implements; current versions document Block Kit instead and do not
+mention attachments at all. 
