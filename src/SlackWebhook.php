@@ -12,6 +12,7 @@ namespace Hampel\SlackMessage;
 
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 class SlackWebhook
@@ -153,6 +154,80 @@ class SlackWebhook
         }
 
         return $this->http->sendRequest($request);
+    }
+
+    /**
+     * Did Slack accept the message?
+     *
+     * An incoming webhook reports failure as an HTTP status. The Web API answers 200 whatever
+     * happens and puts the outcome in an "ok" field, so a response has to be read both ways.
+     *
+     * @param  \Psr\Http\Message\ResponseInterface  $response
+     * @return bool
+     */
+    public function accepted(ResponseInterface $response)
+    {
+        return $this->error($response) === null;
+    }
+
+    /**
+     * Why Slack rejected the message, or null when it did not.
+     *
+     * The Web API names its errors - channel_not_found, invalid_auth, not_in_channel. A webhook
+     * puts a short reason in the body of a non-2xx response, and the status stands in when it
+     * sends none.
+     *
+     * @param  \Psr\Http\Message\ResponseInterface  $response
+     * @return string|null
+     */
+    public function error(ResponseInterface $response)
+    {
+        $body = static::readBody($response);
+
+        $decoded = json_decode($body, true);
+
+        if (is_array($decoded) && array_key_exists('ok', $decoded)) {
+            if ($decoded['ok'] === true) {
+                return null;
+            }
+
+            $error = $decoded['error'] ?? null;
+
+            return is_string($error) && $error !== '' ? $error : 'unknown_error';
+        }
+
+        $status = $response->getStatusCode();
+
+        if ($status >= 200 && $status < 300) {
+            return null;
+        }
+
+        $reason = trim(substr($body, 0, 200));
+
+        return $reason !== '' ? $reason : (string) $status;
+    }
+
+    /**
+     * Read a response body without consuming it for the caller.
+     *
+     * Casting a stream to string seeks to the beginning first, so the read itself is safe
+     * wherever the caller left the pointer. It ends at EOF though, and getContents() does not
+     * rewind - so put it back, or a caller that reads the body after us gets nothing.
+     *
+     * @param  \Psr\Http\Message\ResponseInterface  $response
+     * @return string
+     */
+    protected static function readBody(ResponseInterface $response)
+    {
+        $stream = $response->getBody();
+
+        $body = (string) $stream;
+
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
+
+        return $body;
     }
 
     /**

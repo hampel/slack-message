@@ -46,9 +46,11 @@ vendor/bin/rig payload          # needs no credentials, sends nothing
 vendor/bin/rig send             # posts a message with one attachment per level
 vendor/bin/rig queued           # buildPayload -> JSON -> sendPayload, the add-on's path
 vendor/bin/rig legacy           # a version 1 shaped payload, the upgrade path
+vendor/bin/rig api              # chat.postMessage, and a refusal behind a 200
 ```
 
-Everything but `payload` needs `SLACK_WEBHOOK_URL` in a `.env` beside the package. `.env` is
+`api` needs `SLACK_BOT_TOKEN` and `SLACK_CHANNEL`; the other sending exercises need
+`SLACK_WEBHOOK_URL`. All of them go in a `.env` beside the package. `.env` is
 gitignored and `harness/` is `export-ignore`d.
 
 Reach for an exercise when the question is "does Slack accept this" or "does this read well in a
@@ -88,6 +90,12 @@ Three things about `SlackWebhook` that surprise people:
 
 Per-attachment `color` falls back to the parent message's level colour, so the message level
 tints all attachments unless one overrides it.
+
+`accepted()` and `error()` read a response. They are separate from `send()` because the two
+transports fail differently: a webhook uses the HTTP status, while `chat.postMessage` answers `200`
+whatever happens and puts the outcome in an `ok` field. `readBody()` casts the stream to string —
+which seeks to the beginning itself, per PSR-7 — and rewinds afterwards, because `getContents()`
+does not, and a caller reading the body after us would otherwise get nothing.
 
 ## How parity is held
 

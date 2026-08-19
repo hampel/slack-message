@@ -109,8 +109,23 @@ $message->http(['headers' => ['Authorization' => 'Bearer xoxb-your-token']]);
 $slack->send('https://slack.com/api/chat.postMessage', $message);
 ```
 
-Note that `chat.postMessage` reports failure as `"ok": false` in a `200` response, rather than as
-an HTTP status. Check the body, not the code.
+### Did Slack accept it?
+
+The two transports report failure differently. A webhook answers with an HTTP status; the Web API
+answers `200` whatever happens and puts the outcome in an `ok` field — so a rejected message and a
+delivered one look identical from the status alone. `accepted()` reads a response both ways, and
+`error()` names the reason:
+
+```php
+$response = $slack->send($url, $message);
+
+if (! $slack->accepted($response)) {
+    // channel_not_found, invalid_auth, not_in_channel, invalid_payload ...
+    throw new RuntimeException('Slack refused the message: ' . $slack->error($response));
+}
+```
+
+Neither consumes the response: the body is left where the caller can still read it.
 
 Building now, sending later
 ---------------------------

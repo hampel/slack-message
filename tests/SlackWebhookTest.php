@@ -257,6 +257,67 @@ class SlackWebhookTest extends TestCase
         $this->assertSame('{"text":"Content","attachments":[]}', (string) $this->request->getBody());
     }
 
+    #[DataProvider('responses')]
+    public function testAResponseIsReadForWhetherSlackAcceptedTheMessage($status, $body, $accepted, $error)
+    {
+        $response = new Response($status, [], $body);
+
+        $this->assertSame($accepted, $this->webhook->accepted($response));
+        $this->assertSame($error, $this->webhook->error($response));
+    }
+
+    public static function responses()
+    {
+        return [
+            // An incoming webhook: the status carries the outcome, the body a short reason.
+            'webhook ok' => [200, 'ok', true, null],
+            'webhook invalid payload' => [400, 'invalid_payload', false, 'invalid_payload'],
+            'webhook no reason given' => [500, '', false, '500'],
+            'webhook html error page' => [502, str_repeat('x', 500), false, str_repeat('x', 200)],
+
+            // The Web API: 200 whatever happens, with the outcome in the body.
+            'api ok' => [200, '{"ok":true,"channel":"C123","ts":"1503435956.000247"}', true, null],
+            'api channel not found' => [200, '{"ok":false,"error":"channel_not_found"}', false, 'channel_not_found'],
+            'api invalid auth' => [200, '{"ok":false,"error":"invalid_auth"}', false, 'invalid_auth'],
+            'api refused without saying why' => [200, '{"ok":false}', false, 'unknown_error'],
+
+            // ok wins over the status, so a rejection is never read as a delivery.
+            'api failure behind a 200' => [200, '{"ok":false,"error":"not_in_channel"}', false, 'not_in_channel'],
+            'api success behind a 500' => [500, '{"ok":true}', true, null],
+        ];
+    }
+
+    public function testReadingAResponseLeavesItReadableForTheCaller()
+    {
+        $response = new Response(200, [], '{"ok":false,"error":"channel_not_found"}');
+
+        $this->assertFalse($this->webhook->accepted($response));
+        $this->assertSame('channel_not_found', $this->webhook->error($response));
+
+        // getContents() reads from wherever the pointer is, so this is what proves the stream
+        // was put back rather than left at the end.
+        $this->assertSame('{"ok":false,"error":"channel_not_found"}', $response->getBody()->getContents());
+    }
+
+    public function testAResponseCanBeCheckedAfterTheCallerHasAlreadyReadIt()
+    {
+        $response = new Response(200, [], '{"ok":false,"error":"invalid_auth"}');
+
+        // Whatever the caller does with the body first, the check still has to work.
+        $this->assertSame('{"ok":false,"error":"invalid_auth"}', (string) $response->getBody());
+
+        $this->assertFalse($this->webhook->accepted($response));
+        $this->assertSame('invalid_auth', $this->webhook->error($response));
+    }
+
+    public function testTheResponseFromSendCanBeCheckedDirectly()
+    {
+        $response = $this->webhook->send('https://hooks.slack.test/webhook', $this->message());
+
+        $this->assertTrue($this->webhook->accepted($response));
+        $this->assertNull($this->webhook->error($response));
+    }
+
     public function testGuzzlesFactoryIsFoundWhenNoneIsSupplied()
     {
         $webhook = new SlackWebhook($this->http);

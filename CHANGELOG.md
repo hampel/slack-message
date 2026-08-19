@@ -23,6 +23,9 @@ Sends over any PSR-18 HTTP client, and no longer carries Laravel to test itself.
 
 ### Added
 
+* `accepted()` reports whether Slack took the message, and `error()` names the reason it did not.
+  An incoming webhook reports failure as an HTTP status; the Web API answers `200` whatever happens
+  and puts the outcome in an `ok` field. Neither method consumes the response
 * `sendPayload()` takes an optional third argument of transport options, carrying request headers
 * requires `psr/http-client`, `psr/http-factory` and `psr/http-message`. Guzzle remains a suggestion
 
