@@ -19,7 +19,7 @@ property without a reason that outweighs breaking that parity.
 ```bash
 composer install
 composer test                                         # phpunit
-composer analyse                                      # phpstan, level 9 on src
+composer analyse                                      # phpstan, level 9 on src, twice
 composer lint                                         # pint --test
 composer format                                       # pint, applying the fixes
 composer check                                        # all three
@@ -127,5 +127,9 @@ PSR interface packages are required.
   PSR-12 has nothing to say about it and Pint will not add them. Match the surrounding style;
   changing the supported versions is a policy decision, not a drive-by change (see
   `/srv/www/version-support.html`).
-- PHPStan runs at level 9 over `src` with no baseline, across PHP 8.3 to 8.5. Keep it clean.
+- PHPStan runs at level 9 over `src` with no baseline, twice. `phpstan.neon` covers the declared
+  8.3 to 8.5 range; `phpstan-ceiling.neon` pins it at 8.5. A range reports only what is an error
+  across the whole of it, so anything deprecated above the floor is invisible to the first pass —
+  PHP 8.4's implicitly-nullable parameter deprecation shipped in 2.0.0 and 2.1.0 that way. Keep
+  both clean.
 - `SlackAttachment::timestamp()` accepts any `\DateTimeInterface`, so Carbon is not needed.

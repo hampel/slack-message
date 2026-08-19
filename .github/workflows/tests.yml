@@ -121,3 +121,7 @@ jobs:
       # Runs once rather than per version: phpstan.neon analyses the whole
       # 8.3 - 8.5 range in a single pass, whatever PHP it runs on.
       - run: vendor/bin/phpstan analyse --no-progress
+
+      # A range reports only what is an error across the whole of it, so a deprecation
+      # introduced above the floor does not appear. This pins the analysis at the ceiling.
+      - run: vendor/bin/phpstan analyse --configuration=phpstan-ceiling.neon --no-progress

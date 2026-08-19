@@ -20,6 +20,10 @@ CHANGELOG
 * CI covers both Guzzle lines: the matrix resolves Guzzle 8, and a named job holds Guzzle 7, which
   is what XenForo 2.x installs
 * the `guzzlehttp/guzzle` suggestion and the README name both major versions
+* PHPStan runs twice: once over the declared 8.3 to 8.5 range, and once pinned at 8.5. A range
+  reports only what is an error across the whole of it, so a deprecation introduced above the floor
+  does not appear — which is how the 8.4 deprecation above reached a release. The pinned pass
+  catches that class before the test matrix, and in code no test executes
 
 2.1.0 (2026-08-19)
 ------------------

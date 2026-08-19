@@ -1,0 +1,15 @@
+# The phpVersion range in phpstan.neon reports only what is an error across the whole of it, so
+# anything deprecated above the floor is invisible to it. PHP 8.4's implicitly-nullable parameter
+# deprecation reached a release that way.
+#
+# This pins the analysis at the top of the supported range instead. It catches that class of
+# problem before the test matrix does, and unlike the test matrix it also catches it in code no
+# test happens to execute.
+
+includes:
+    - phpstan.neon
+
+parameters:
+    phpVersion:
+        min: 80500
+        max: 80500
