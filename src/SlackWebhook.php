@@ -1,4 +1,6 @@
-<?php namespace Hampel\SlackMessage;
+<?php
+
+namespace Hampel\SlackMessage;
 
 /**
  * @see https://github.com/illuminate/notifications
@@ -48,12 +50,10 @@ class SlackWebhook
         ClientInterface $http,
         RequestFactoryInterface $requestFactory = null,
         StreamFactoryInterface $streamFactory = null
-    )
-    {
+    ) {
         $this->http = $http;
 
-        if ($requestFactory !== null && $streamFactory !== null)
-        {
+        if ($requestFactory !== null && $streamFactory !== null) {
             $this->requestFactory = $requestFactory;
             $this->streamFactory = $streamFactory;
 
@@ -75,8 +75,7 @@ class SlackWebhook
      */
     protected static function discoverFactory()
     {
-        if (class_exists('GuzzleHttp\Psr7\HttpFactory'))
-        {
+        if (class_exists('GuzzleHttp\Psr7\HttpFactory')) {
             return new \GuzzleHttp\Psr7\HttpFactory();
         }
 
@@ -133,8 +132,7 @@ class SlackWebhook
 
         $body = json_encode($payload);
 
-        if ($body === false)
-        {
+        if ($body === false) {
             throw new \InvalidArgumentException('json_encode error: ' . json_last_error_msg());
         }
 
@@ -142,12 +140,9 @@ class SlackWebhook
             ->withHeader('Content-Type', 'application/json')
             ->withBody($this->streamFactory->createStream($body));
 
-        if (isset($options['headers']) && is_array($options['headers']))
-        {
-            foreach ($options['headers'] as $name => $value)
-            {
-                if (!is_string($name) || !is_string($value))
-                {
+        if (isset($options['headers']) && is_array($options['headers'])) {
+            foreach ($options['headers'] as $name => $value) {
+                if (!is_string($name) || !is_string($value)) {
                     throw new \InvalidArgumentException('Header names and values must be strings.');
                 }
 
@@ -168,8 +163,7 @@ class SlackWebhook
      */
     protected static function unwrapPayload(array $payload)
     {
-        if (isset($payload['json']) && is_array($payload['json']))
-        {
+        if (isset($payload['json']) && is_array($payload['json'])) {
             return $payload['json'];
         }
 
@@ -238,7 +232,9 @@ class SlackWebhook
      */
     protected function fields(SlackAttachment $attachment)
     {
-        if (!is_array($attachment->fields)) return null;
+        if (!is_array($attachment->fields)) {
+            return null;
+        }
 
         return array_values($this->map($attachment->fields, function ($value, $key) {
             if ($value instanceof SlackAttachmentField) {

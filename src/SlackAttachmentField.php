@@ -1,4 +1,6 @@
-<?php namespace Hampel\SlackMessage;
+<?php
+
+namespace Hampel\SlackMessage;
 
 /**
  * @see https://github.com/illuminate/notifications

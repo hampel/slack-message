@@ -1,4 +1,6 @@
-<?php namespace Hampel\SlackMessage;
+<?php
+
+namespace Hampel\SlackMessage;
 
 /**
  * @see https://github.com/illuminate/notifications
@@ -199,7 +201,7 @@ class SlackAttachment
         if (is_callable($title)) {
             $callback = $title;
 
-            $callback($attachmentField = new SlackAttachmentField);
+            $callback($attachmentField = new SlackAttachmentField());
 
             $this->fields[] = $attachmentField;
 

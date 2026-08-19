@@ -1,4 +1,6 @@
-<?php namespace Hampel\SlackMessage\Tests;
+<?php
+
+namespace Hampel\SlackMessage\Tests;
 
 use Hampel\SlackMessage\SlackMessage;
 use Hampel\SlackMessage\SlackWebhook;
@@ -15,7 +17,7 @@ class SlackMessageTest extends TestCase
      */
     private $slackWebhook;
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -54,9 +56,10 @@ class SlackMessageTest extends TestCase
     {
         ksort($array);
 
-        foreach ($array as &$value)
-        {
-            if (is_array($value)) self::ksortDeep($value);
+        foreach ($array as &$value) {
+            if (is_array($value)) {
+                self::ksortDeep($value);
+            }
         }
     }
 

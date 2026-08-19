@@ -1,4 +1,6 @@
-<?php namespace Hampel\SlackMessage\Tests;
+<?php
+
+namespace Hampel\SlackMessage\Tests;
 
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
@@ -31,7 +33,7 @@ class SlackWebhookTest extends TestCase
      */
     private $request;
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -77,16 +79,15 @@ class SlackWebhookTest extends TestCase
             $attachment->content('Attachment Content');
         });
 
-        if ($level !== null) $message->{$level}();
+        if ($level !== null) {
+            $message->{$level}();
+        }
 
         $attachment = $this->attached($message);
 
-        if ($colour === null)
-        {
+        if ($colour === null) {
             $this->assertArrayNotHasKey('color', $attachment);
-        }
-        else
-        {
+        } else {
             $this->assertSame($colour, $attachment['color']);
         }
     }

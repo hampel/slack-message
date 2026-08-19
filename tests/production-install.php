@@ -23,8 +23,7 @@ function check($description, $condition)
 {
     global $failures;
 
-    if ($condition)
-    {
+    if ($condition) {
         echo "ok   $description\n";
 
         return;
@@ -46,7 +45,7 @@ $message = (new SlackMessage())
             ->timestamp(new \DateTimeImmutable('@1234567890'));
     });
 
-$client = new class implements \Psr\Http\Client\ClientInterface {
+$client = new class () implements \Psr\Http\Client\ClientInterface {
     public function sendRequest(\Psr\Http\Message\RequestInterface $request): \Psr\Http\Message\ResponseInterface
     {
         throw new \LogicException('This client is never asked to send anything.');
@@ -70,7 +69,7 @@ $expected = [
     'channel' => '#ops',
 ];
 
-$factory = new class implements \Psr\Http\Message\RequestFactoryInterface, \Psr\Http\Message\StreamFactoryInterface {
+$factory = new class () implements \Psr\Http\Message\RequestFactoryInterface, \Psr\Http\Message\StreamFactoryInterface {
     public function createRequest(string $method, $uri): \Psr\Http\Message\RequestInterface
     {
         throw new \LogicException('This factory is never asked to build anything.');
@@ -97,19 +96,15 @@ $webhook = new SlackWebhook($client, $factory, $factory);
 check('a payload is built without an HTTP client', $webhook->buildPayload($message) === $expected);
 
 // Guzzle is only a suggestion, so with nothing to discover the constructor has to say so.
-try
-{
+try {
     new SlackWebhook($client);
 
     check('a missing PSR-17 factory is reported', false);
-}
-catch (\RuntimeException $e)
-{
+} catch (\RuntimeException $e) {
     check('a missing PSR-17 factory is reported', strpos($e->getMessage(), 'PSR-17') !== false);
 }
 
-if ($failures > 0)
-{
+if ($failures > 0) {
     echo "\n$failures check(s) failed.\n";
     exit(1);
 }

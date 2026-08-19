@@ -1,4 +1,6 @@
-<?php namespace Hampel\SlackMessage;
+<?php
+
+namespace Hampel\SlackMessage;
 
 /**
  * @see https://github.com/illuminate/notifications
@@ -202,7 +204,7 @@ class SlackMessage
      */
     public function attachment(Closure $callback)
     {
-        $this->attachments[] = $attachment = new SlackAttachment;
+        $this->attachments[] = $attachment = new SlackAttachment();
 
         $callback($attachment);
 
