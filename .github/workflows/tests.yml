@@ -58,6 +58,15 @@ jobs:
 
       - run: vendor/bin/phpunit
 
+      # The only job that resolves the toolchain low, so the only one that holds the
+      # phpstan/phpstan constraint to the phpVersion max its configs declare. Naming a PHP
+      # version the installed PHPStan predates is a configuration error, not a weaker analysis:
+      # the run dies before reading any code. Pint is left out - its rule set moves between
+      # patches, so the oldest rejects what the newest accepts.
+      - run: vendor/bin/phpstan analyse --no-progress
+
+      - run: vendor/bin/phpstan analyse --configuration=phpstan-ceiling.neon --no-progress
+
   guzzle7:
     name: Guzzle 7
     runs-on: ubuntu-latest
