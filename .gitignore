@@ -2,7 +2,14 @@
 composer.phar
 composer.lock
 .DS_Store
-/.env
+
+# Secrets. Deliberately not anchored with a leading slash: that would cover the repository root
+# only, and rig runs exercises with --env=<file>, so a .env can legitimately sit in a
+# subdirectory. A .env anywhere in this tree holds live credentials and must never be committed.
+.env
+.env.*
+!.env.example
+
 /.idea
 /.phpunit.cache
 /CLAUDE.local.md
