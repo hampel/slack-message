@@ -34,6 +34,27 @@ and warnings.
 `composer install --no-dev`, where Guzzle is absent, and is the only place the missing-factory
 path can be reached — CI runs it as its own job.
 
+## The harness
+
+`harness/` holds exercises for [hampel/rig](https://github.com/hampel/rig), which does the
+opposite of the test suite: it posts to a real webhook and shows you what happened. Nothing in it
+asserts, and CI never runs it.
+
+```bash
+vendor/bin/rig                  # list the exercises
+vendor/bin/rig payload          # needs no credentials, sends nothing
+vendor/bin/rig send             # posts a message with one attachment per level
+vendor/bin/rig queued           # buildPayload -> JSON -> sendPayload, the add-on's path
+vendor/bin/rig legacy           # a version 1 shaped payload, the upgrade path
+```
+
+Everything but `payload` needs `SLACK_WEBHOOK_URL` in a `.env` beside the package. `.env` is
+gitignored and `harness/` is `export-ignore`d.
+
+Reach for an exercise when the question is "does Slack accept this" or "does this read well in a
+channel" — neither of which a test can answer. `tests/SlackWebhookTest.php` covers whether the
+payload is *correct*; the harness covers whether it is *right*.
+
 ## Architecture
 
 Four classes in `src/`, in two distinct roles:
