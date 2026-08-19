@@ -47,10 +47,11 @@ vendor/bin/rig send             # posts a message with one attachment per level
 vendor/bin/rig queued           # buildPayload -> JSON -> sendPayload, the add-on's path
 vendor/bin/rig legacy           # a version 1 shaped payload, the upgrade path
 vendor/bin/rig api              # chat.postMessage, and a refusal behind a 200
+vendor/bin/rig channels         # conversations.list, for a config UI to choose from
 ```
 
-`api` needs `SLACK_BOT_TOKEN` and `SLACK_CHANNEL`; the other sending exercises need
-`SLACK_WEBHOOK_URL`. All of them go in a `.env` beside the package — copy `.env.example`.
+`api` needs `SLACK_BOT_TOKEN` and `SLACK_CHANNEL`, `channels` needs the token plus `channels:read`
+and `groups:read` on the app, and the other sending exercises need `SLACK_WEBHOOK_URL`. All of them go in a `.env` beside the package — copy `.env.example`.
 The README covers obtaining each of them, and what Slack's refusal messages mean. `.env` is
 gitignored and `harness/` is `export-ignore`d.
 
