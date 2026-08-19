@@ -1,6 +1,52 @@
 CHANGELOG
 =========
 
+2.0.0 (2026-08-19)
+------------------
+
+Sends over any PSR-18 HTTP client, and no longer carries Laravel to test itself.
+
+### Breaking changes
+
+* requires PHP 8.3 or later
+* `SlackWebhook::__construct()` takes a PSR-18 `Psr\Http\Client\ClientInterface`, in place of a concrete
+  `GuzzleHttp\Client`. PSR-17 request and stream factories may be passed as second and third arguments;
+  Guzzle's factory is used when they are omitted, and a `RuntimeException` is thrown when there is none
+  to find
+* `buildJsonPayload()` is now `buildPayload()`, and returns the Slack payload. It previously returned
+  Guzzle request options, with the payload under a `json` key. `sendPayload()` accepts either shape, so a
+  payload queued before the upgrade still sends
+* `SlackMessage::http()` contributes request headers only. PSR-18 has no per-request options — configure
+  timeouts and proxies on the client
+* removed `fromLaravel()` from `SlackMessage`, `SlackAttachment` and `SlackAttachmentField`
+* `SlackAttachment::timestamp()` accepts any `\DateTimeInterface`, in place of `Carbon\Carbon`
+
+### Added
+
+* `sendPayload()` takes an optional third argument of transport options, carrying request headers
+* requires `psr/http-client`, `psr/http-factory` and `psr/http-message`. Guzzle remains a suggestion
+
+### Changed
+
+* analysed by PHPStan at level 9 over `src`, across PHP 8.3 to 8.5, with no baseline
+* formatted to PSR-12 with Pint, and declares strict types
+* tested on PHP 8.3, 8.4 and 8.5, at the lowest dependencies each constraint allows, and against a
+  production install with no HTTP client present
+* the payload fixtures are built with this package's own builders. Each was verified byte for byte
+  against the payload Laravel builds, at `laravel/framework` 13.26.1 and
+  `laravel/slack-notification-channel` 3.10.0
+* direct test coverage for message levels and colour, `link_names`, the unfurl flags, attachment
+  pretext, image and thumbnail, request headers, factory discovery, and a payload carried through a
+  queue
+* `laravel/slack-notification-channel` is no longer a development dependency
+* raised the `mockery/mockery` development requirement to `^1.6`. `^1.0` could not run the test suite
+* uses PHPUnit 12. The test run fails on deprecations, notices, risky tests and warnings
+* the distribution archive carries `src`, `composer.json`, `README.md`, `CHANGELOG.md` and
+  `LICENSE.md`, and nothing else
+* the repository declares LF line endings
+* moved to GitHub. Repository URLs, issue links and badges updated, `LICENSE.md` added, and
+  `notifications` added to the package keywords
+
 1.1.0 (2019-10-14)
 ------------------
 
