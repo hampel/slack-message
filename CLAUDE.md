@@ -125,8 +125,7 @@ PSR interface packages are required.
 - `composer.json` declares `"php": "^8.3"`, but the source predates it — no scalar type hints,
   no return types, docblocks carry the types. That is about type declarations, not formatting:
   PSR-12 has nothing to say about it and Pint will not add them. Match the surrounding style;
-  changing the supported versions is a policy decision, not a drive-by change (see
-  `/srv/www/version-support.html`).
+  changing the supported versions is a policy decision, not a drive-by change.
 - PHPStan runs at level 9 over `src` with no baseline, twice. `phpstan.neon` covers the declared
   8.3 to 8.5 range; `phpstan-ceiling.neon` pins it at 8.5. A range reports only what is an error
   across the whole of it, so anything deprecated above the floor is invisible to the first pass —
