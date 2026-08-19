@@ -4,6 +4,13 @@ CHANGELOG
 2.2.0 (unreleased)
 ------------------
 
+### Fixed
+
+* the constructor no longer emits a deprecation on PHP 8.4 and later. Its two optional PSR-17
+  factory parameters were implicitly nullable, which PHP 8.4 deprecated in favour of an explicit
+  `?Type`. Affects 2.0.0 and 2.1.0: on 8.4 or 8.5 every construction raised two deprecations, and a
+  consumer whose test suite fails on deprecations would have failed on them
+
 ### Changed
 
 * Guzzle 8 is supported and tested. A fresh install has resolved Guzzle 8 since it was released,

@@ -51,8 +51,8 @@ class SlackWebhook
      */
     public function __construct(
         ClientInterface $http,
-        RequestFactoryInterface $requestFactory = null,
-        StreamFactoryInterface $streamFactory = null
+        ?RequestFactoryInterface $requestFactory = null,
+        ?StreamFactoryInterface $streamFactory = null
     ) {
         $this->http = $http;
 
