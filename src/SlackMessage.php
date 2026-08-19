@@ -280,31 +280,4 @@ class SlackMessage
 
         return $this;
     }
-
-	/**
-	 * Create a new SlackMessage from a Laravel SlackMessage - mostly just for testing purposes
-	 *
-	 * @param \Illuminate\Notifications\Messages\SlackMessage $laravelMessage
-	 * @return SlackMessage
-	 */
-    public static function fromLaravel(\Illuminate\Notifications\Messages\SlackMessage $laravelMessage)
-    {
-    	$message = new self;
-    	$message->level = $laravelMessage->level;
-    	$message->username = $laravelMessage->username;
-    	$message->icon = $laravelMessage->icon;
-    	$message->image = $laravelMessage->image;
-    	$message->channel = $laravelMessage->channel;
-    	$message->content = $laravelMessage->content;
-    	$message->linkNames = (int) $laravelMessage->linkNames;
-    	$message->unfurlLinks = $laravelMessage->unfurlLinks;
-    	$message->unfurlMedia = $laravelMessage->unfurlMedia;
-    	foreach ($laravelMessage->attachments as $laravelAttachment)
-	    {
-	    	$message->attachments[] = SlackAttachment::fromLaravel($laravelAttachment);
-	    }
-	    $message->http = $laravelMessage->http;
-
-    	return $message;
-    }
 }

@@ -80,25 +80,4 @@ class SlackAttachmentField
             'short' => $this->short,
         ];
     }
-
-	/**
-	 * Create a new SlackAttachmentField from a Laravel SlackAttachmentField - mostly just for testing purposes
-	 *
-	 * @param \Illuminate\Notifications\Messages\SlackAttachmentField $laravelAttachmentField
-	 *
-	 * @return SlackAttachmentField
-	 */
-    public static function fromLaravel(\Illuminate\Notifications\Messages\SlackAttachmentField $laravelAttachmentField)
-    {
-    	$field = $laravelAttachmentField->toArray();
-
-    	$attachment = new self;
-    	$attachment->title($field['title'])->content($field['value']);
-    	if (!$field['short'])
-	    {
-	    	$attachment->long();
-	    }
-
-	    return $attachment;
-    }
 }

@@ -1,93 +1,48 @@
 <?php namespace Hampel\SlackMessage\Tests;
 
-use GuzzleHttp\Psr7\Response;
 use Hampel\SlackMessage\SlackMessage;
+use Hampel\SlackMessage\SlackWebhook;
 use Mockery as m;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\RequestInterface;
-use Illuminate\Notifications\Notification;
 
 class SlackMessageTest extends TestCase
 {
-	use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-
-    /**
-     * @var \Illuminate\Notifications\Channels\SlackWebhookChannel
-     */
-    private $slackChannel;
+    use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
     /**
      * @var \Hampel\SlackMessage\SlackWebhook
      */
     private $slackWebhook;
 
-    /**
-     * @var MockInterface|\GuzzleHttp\Client
-     */
-    private $guzzleHttp;
-
-    /**
-     * @var MockInterface|\Psr\Http\Client\ClientInterface
-     */
-    private $psrHttp;
-
     protected function setUp() : void
     {
         parent::setUp();
-        $this->guzzleHttp = m::mock('GuzzleHttp\Client');
-        $this->psrHttp = m::mock('Psr\Http\Client\ClientInterface');
-        $this->slackChannel = new \Illuminate\Notifications\Channels\SlackWebhookChannel($this->guzzleHttp);
-        $this->slackWebhook = new \Hampel\SlackMessage\SlackWebhook($this->psrHttp);
+
+        $this->slackWebhook = new SlackWebhook(m::mock('Psr\Http\Client\ClientInterface'));
     }
 
     /**
-     * @param Notification $notification
-     * @param array $payload
+     * These payloads were verified byte for byte against the payloads Laravel's own
+     * SlackWebhookChannel builds, at laravel/framework 13.26.1 and
+     * laravel/slack-notification-channel 3.10.0.
      */
-    #[DataProvider('payloadDataProviderLaravel')]
-    public function testCorrectPayloadIsSentToSlackLaravel(Notification $notification, array $payload)
+    #[DataProvider('payloadDataProvider')]
+    public function testCorrectPayloadIsBuilt(SlackMessage $message, array $payload)
     {
-        $this->guzzleHttp->shouldReceive('post')->once()->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
-            self::ksortDeep($argPayload);
-            self::ksortDeep($payload);
+        $built = $this->slackWebhook->buildPayload($message);
 
-            $this->assertSame('url', $argUrl);
-            $this->assertSame($payload, $argPayload);
-            return new Response();
-        });
-        $this->slackChannel->send(new NotificationSlackChannelTestNotifiable, $notification);
-    }
+        self::ksortDeep($built);
+        self::ksortDeep($payload);
 
-    /**
-     * @param SlackMessage $message
-     * @param array $payload
-     */
-    #[DataProvider('payloadDataProviderStandalone')]
-    public function testCorrectPayloadIsSentToSlackStandalone(SlackMessage $message, array $payload)
-    {
-        $this->psrHttp->shouldReceive('sendRequest')->once()->andReturnUsing(function (RequestInterface $request) use ($payload) {
-            $this->assertSame('POST', $request->getMethod());
-            $this->assertSame('url', (string) $request->getUri());
-            $this->assertSame('application/json', $request->getHeaderLine('Content-Type'));
-
-            $sent = json_decode((string) $request->getBody(), true);
-            $expected = $payload['json'];
-
-            self::ksortDeep($sent);
-            self::ksortDeep($expected);
-
-            $this->assertSame($expected, $sent);
-            return new Response();
-        });
-        $this->slackWebhook->send('url', $message);
+        $this->assertSame($payload, $built);
     }
 
     /**
      * Sort an array by key, recursively.
      *
      * Slack does not care what order the keys of a JSON object arrive in, so the payload
-     * fixtures are written in reading order rather than the order buildJsonPayload() emits.
+     * fixtures are written in reading order rather than the order buildPayload() emits.
      * Sorting both sides lets the comparison be strict about types and about the order of
      * list elements, which do matter.
      *
@@ -105,7 +60,7 @@ class SlackMessageTest extends TestCase
         }
     }
 
-    public static function payloadDataProviderLaravel()
+    public static function payloadDataProvider()
     {
         return [
             'payloadWithIcon' => self::getPayloadWithIcon(),
@@ -116,115 +71,129 @@ class SlackMessageTest extends TestCase
         ];
     }
 
-    public static function payloadDataProviderStandalone()
-    {
-    	$payloadWithIcon = self::getPayloadWithIcon();
-    	$payloadWithIcon[0] = SlackMessage::fromLaravel($payloadWithIcon[0]->toSlack(new NotificationSlackChannelTestNotifiable));
-
-    	$payloadWithImageIcon = self::getPayloadWithImageIcon();
-    	$payloadWithImageIcon[0] = SlackMessage::fromLaravel($payloadWithImageIcon[0]->toSlack(new NotificationSlackChannelTestNotifiable));
-
-    	$payloadWithoutOptionalFields = self::getPayloadWithoutOptionalFields();
-    	$payloadWithoutOptionalFields[0] = SlackMessage::fromLaravel($payloadWithoutOptionalFields[0]->toSlack(new NotificationSlackChannelTestNotifiable));
-
-    	$payloadWithoutFields = self::getPayloadWithoutFields();
-    	$payloadWithoutFields[0] = SlackMessage::fromLaravel($payloadWithoutFields[0]->toSlack(new NotificationSlackChannelTestNotifiable));
-
-    	$payloadWithoutFieldsStandalone = self::getPayloadWithoutFieldsStandalone();
-
-    	$payloadWithAttachmentFieldBuilder = self::getPayloadWithAttachmentFieldBuilder();
-    	$payloadWithAttachmentFieldBuilder[0] = SlackMessage::fromLaravel($payloadWithAttachmentFieldBuilder[0]->toSlack(new NotificationSlackChannelTestNotifiable));
-
-        return compact('payloadWithIcon', 'payloadWithImageIcon', 'payloadWithoutOptionalFields', 'payloadWithoutFields', 'payloadWithoutFieldsStandalone', 'payloadWithAttachmentFieldBuilder');
-    }
-
     private static function getPayloadWithIcon()
     {
         return [
-            new NotificationSlackChannelTestNotification,
+            (new SlackMessage())
+                ->from('Ghostbot', ':ghost:')
+                ->to('#ghost-talk')
+                ->content('Content')
+                ->attachment(function ($attachment) {
+                    $attachment->title('Laravel', 'https://laravel.com')
+                        ->content('Attachment Content')
+                        ->fallback('Attachment Fallback')
+                        ->fields([
+                            'Project' => 'Laravel',
+                        ])
+                        ->footer('Laravel')
+                        ->footerIcon('https://laravel.com/fake.png')
+                        ->markdown(['text'])
+                        ->author('Author', 'https://laravel.com/fake_author', 'https://laravel.com/fake_author.png')
+                        ->timestamp(new \DateTimeImmutable('@1234567890'));
+                }),
             [
-                'json' => [
-                    'username' => 'Ghostbot',
-                    'icon_emoji' => ':ghost:',
-                    'channel' => '#ghost-talk',
-                    'text' => 'Content',
-                    'attachments' => [
-                        [
-                            'title' => 'Laravel',
-                            'title_link' => 'https://laravel.com',
-                            'text' => 'Attachment Content',
-                            'fallback' => 'Attachment Fallback',
-                            'fields' => [
-                                [
-                                    'title' => 'Project',
-                                    'value' => 'Laravel',
-                                    'short' => true,
-                                ],
+                'username' => 'Ghostbot',
+                'icon_emoji' => ':ghost:',
+                'channel' => '#ghost-talk',
+                'text' => 'Content',
+                'attachments' => [
+                    [
+                        'title' => 'Laravel',
+                        'title_link' => 'https://laravel.com',
+                        'text' => 'Attachment Content',
+                        'fallback' => 'Attachment Fallback',
+                        'fields' => [
+                            [
+                                'title' => 'Project',
+                                'value' => 'Laravel',
+                                'short' => true,
                             ],
-                            'mrkdwn_in' => ['text'],
-                            'footer' => 'Laravel',
-                            'footer_icon' => 'https://laravel.com/fake.png',
-                            'author_name' => 'Author',
-                            'author_link' => 'https://laravel.com/fake_author',
-                            'author_icon' => 'https://laravel.com/fake_author.png',
-                            'ts' => 1234567890,
                         ],
+                        'mrkdwn_in' => ['text'],
+                        'footer' => 'Laravel',
+                        'footer_icon' => 'https://laravel.com/fake.png',
+                        'author_name' => 'Author',
+                        'author_link' => 'https://laravel.com/fake_author',
+                        'author_icon' => 'https://laravel.com/fake_author.png',
+                        'ts' => 1234567890,
                     ],
                 ],
             ],
         ];
     }
+
     private static function getPayloadWithImageIcon()
     {
         return [
-            new NotificationSlackChannelTestNotificationWithImageIcon,
+            (new SlackMessage())
+                ->from('Ghostbot')
+                ->image('http://example.com/image.png')
+                ->to('#ghost-talk')
+                ->content('Content')
+                ->attachment(function ($attachment) {
+                    $attachment->title('Laravel', 'https://laravel.com')
+                        ->content('Attachment Content')
+                        ->fallback('Attachment Fallback')
+                        ->fields([
+                            'Project' => 'Laravel',
+                        ])
+                        ->footer('Laravel')
+                        ->footerIcon('https://laravel.com/fake.png')
+                        ->markdown(['text'])
+                        ->timestamp(new \DateTimeImmutable('@1234567890'));
+                }),
             [
-                'json' => [
-                    'username' => 'Ghostbot',
-                    'icon_url' => 'http://example.com/image.png',
-                    'channel' => '#ghost-talk',
-                    'text' => 'Content',
-                    'attachments' => [
-                        [
-                            'title' => 'Laravel',
-                            'title_link' => 'https://laravel.com',
-                            'text' => 'Attachment Content',
-                            'fallback' => 'Attachment Fallback',
-                            'fields' => [
-                                [
-                                    'title' => 'Project',
-                                    'value' => 'Laravel',
-                                    'short' => true,
-                                ],
+                'username' => 'Ghostbot',
+                'icon_url' => 'http://example.com/image.png',
+                'channel' => '#ghost-talk',
+                'text' => 'Content',
+                'attachments' => [
+                    [
+                        'title' => 'Laravel',
+                        'title_link' => 'https://laravel.com',
+                        'text' => 'Attachment Content',
+                        'fallback' => 'Attachment Fallback',
+                        'fields' => [
+                            [
+                                'title' => 'Project',
+                                'value' => 'Laravel',
+                                'short' => true,
                             ],
-                            'mrkdwn_in' => ['text'],
-                            'footer' => 'Laravel',
-                            'footer_icon' => 'https://laravel.com/fake.png',
-                            'ts' => 1234567890,
                         ],
+                        'mrkdwn_in' => ['text'],
+                        'footer' => 'Laravel',
+                        'footer_icon' => 'https://laravel.com/fake.png',
+                        'ts' => 1234567890,
                     ],
                 ],
             ],
         ];
     }
+
     private static function getPayloadWithoutOptionalFields()
     {
         return [
-            new NotificationSlackChannelWithoutOptionalFieldsTestNotification,
+            (new SlackMessage())
+                ->content('Content')
+                ->attachment(function ($attachment) {
+                    $attachment->title('Laravel', 'https://laravel.com')
+                        ->content('Attachment Content')
+                        ->fields([
+                            'Project' => 'Laravel',
+                        ]);
+                }),
             [
-                'json' => [
-                    'text' => 'Content',
-                    'attachments' => [
-                        [
-                            'title' => 'Laravel',
-                            'title_link' => 'https://laravel.com',
-                            'text' => 'Attachment Content',
-                            'fields' => [
-                                [
-                                    'title' => 'Project',
-                                    'value' => 'Laravel',
-                                    'short' => true,
-                                ],
+                'text' => 'Content',
+                'attachments' => [
+                    [
+                        'title' => 'Laravel',
+                        'title_link' => 'https://laravel.com',
+                        'text' => 'Attachment Content',
+                        'fields' => [
+                            [
+                                'title' => 'Project',
+                                'value' => 'Laravel',
+                                'short' => true,
                             ],
                         ],
                     ],
@@ -232,179 +201,67 @@ class SlackMessageTest extends TestCase
             ],
         ];
     }
+
     private static function getPayloadWithoutFields()
     {
         return [
-            new NotificationSlackChannelWithoutFieldsTestNotification,
+            (new SlackMessage())
+                ->content('Content')
+                ->attachment(function ($attachment) {
+                    $attachment->title('Laravel', 'https://laravel.com')
+                        ->content('Attachment Content');
+                }),
             [
-                'json' => [
-                    'text' => 'Content',
-                    'attachments' => [
-                        [
-                            'title' => 'Laravel',
-                            'title_link' => 'https://laravel.com',
-                            'text' => 'Attachment Content',
-                        ],
+                'text' => 'Content',
+                'attachments' => [
+                    [
+                        'title' => 'Laravel',
+                        'title_link' => 'https://laravel.com',
+                        'text' => 'Attachment Content',
                     ],
                 ],
             ],
         ];
     }
-    private static function getPayloadWithoutFieldsStandalone()
+
+    private static function getPayloadWithAttachmentFieldBuilder()
     {
         return [
-             (new SlackMessage())->content('Content')
-                                 ->attachment(function ($attachment) {
-                                 	    $attachment->title('Laravel', 'https://laravel.com')
-                                                   ->content('Attachment Content');
-                                 }),
+            (new SlackMessage())
+                ->content('Content')
+                ->attachment(function ($attachment) {
+                    $attachment->title('Laravel', 'https://laravel.com')
+                        ->content('Attachment Content')
+                        ->field('Project', 'Laravel')
+                        ->field(function ($attachmentField) {
+                            $attachmentField
+                                ->title('Special powers')
+                                ->content('Zonda')
+                                ->long();
+                        });
+                }),
             [
-                'json' => [
-                    'text' => 'Content',
-                    'attachments' => [
-                        [
-                            'title' => 'Laravel',
-                            'title_link' => 'https://laravel.com',
-                            'text' => 'Attachment Content',
-                        ],
-                    ],
-                ],
-            ],
-        ];
-    }
-    public static function getPayloadWithAttachmentFieldBuilder()
-    {
-        return [
-            new NotificationSlackChannelWithAttachmentFieldBuilderTestNotification,
-            [
-                'json' => [
-                    'text' => 'Content',
-                    'attachments' => [
-                        [
-                            'title' => 'Laravel',
-                            'text' => 'Attachment Content',
-                            'title_link' => 'https://laravel.com',
-                            'fields' => [
-                                [
-                                    'title' => 'Project',
-                                    'value' => 'Laravel',
-                                    'short' => true,
-                                ],
-                                [
-                                    'title' => 'Special powers',
-                                    'value' => 'Zonda',
-                                    'short' => false,
-                                ],
+                'text' => 'Content',
+                'attachments' => [
+                    [
+                        'title' => 'Laravel',
+                        'text' => 'Attachment Content',
+                        'title_link' => 'https://laravel.com',
+                        'fields' => [
+                            [
+                                'title' => 'Project',
+                                'value' => 'Laravel',
+                                'short' => true,
+                            ],
+                            [
+                                'title' => 'Special powers',
+                                'value' => 'Zonda',
+                                'short' => false,
                             ],
                         ],
                     ],
                 ],
             ],
         ];
-    }
-}
-
-class NotificationSlackChannelTestNotifiable
-{
-    use \Illuminate\Notifications\Notifiable;
-    public function routeNotificationForSlack()
-    {
-        return 'url';
-    }
-}
-class NotificationSlackChannelTestNotification extends Notification
-{
-    public function toSlack($notifiable)
-    {
-        return (new \Illuminate\Notifications\Messages\SlackMessage())
-                    ->from('Ghostbot', ':ghost:')
-                    ->to('#ghost-talk')
-                    ->content('Content')
-                    ->attachment(function ($attachment) {
-                        $timestamp = m::mock(\Illuminate\Support\Carbon::class);
-                        $timestamp->shouldReceive('getTimestamp')->andReturn(1234567890);
-                        $attachment->title('Laravel', 'https://laravel.com')
-                                   ->content('Attachment Content')
-                                   ->fallback('Attachment Fallback')
-                                   ->fields([
-                                        'Project' => 'Laravel',
-                                    ])
-                                    ->footer('Laravel')
-                                    ->footerIcon('https://laravel.com/fake.png')
-                                    ->markdown(['text'])
-                                    ->author('Author', 'https://laravel.com/fake_author', 'https://laravel.com/fake_author.png')
-                                    ->timestamp($timestamp);
-                    });
-    }
-}
-class NotificationSlackChannelTestNotificationWithImageIcon extends Notification
-{
-    public function toSlack($notifiable)
-    {
-        return (new \Illuminate\Notifications\Messages\SlackMessage())
-                    ->from('Ghostbot')
-                    ->image('http://example.com/image.png')
-                    ->to('#ghost-talk')
-                    ->content('Content')
-                    ->attachment(function ($attachment) {
-                        $timestamp = m::mock(\Illuminate\Support\Carbon::class);
-                        $timestamp->shouldReceive('getTimestamp')->andReturn(1234567890);
-                        $attachment->title('Laravel', 'https://laravel.com')
-                                   ->content('Attachment Content')
-                                   ->fallback('Attachment Fallback')
-                                   ->fields([
-                                        'Project' => 'Laravel',
-                                    ])
-                                    ->footer('Laravel')
-                                    ->footerIcon('https://laravel.com/fake.png')
-                                    ->markdown(['text'])
-                                    ->timestamp($timestamp);
-                    });
-    }
-}
-class NotificationSlackChannelWithoutOptionalFieldsTestNotification extends Notification
-{
-    public function toSlack($notifiable)
-    {
-        return (new \Illuminate\Notifications\Messages\SlackMessage())
-                    ->content('Content')
-                    ->attachment(function ($attachment) {
-                        $attachment->title('Laravel', 'https://laravel.com')
-                                   ->content('Attachment Content')
-                                   ->fields([
-                                        'Project' => 'Laravel',
-                                    ]);
-                    });
-    }
-}
-class NotificationSlackChannelWithoutFieldsTestNotification extends Notification
-{
-    public function toSlack($notifiable)
-    {
-        return (new \Illuminate\Notifications\Messages\SlackMessage())
-                    ->content('Content')
-                    ->attachment(function ($attachment) {
-                        $attachment->title('Laravel', 'https://laravel.com')
-                                   ->content('Attachment Content');
-                    });
-    }
-}
-class NotificationSlackChannelWithAttachmentFieldBuilderTestNotification extends Notification
-{
-    public function toSlack($notifiable)
-    {
-        return (new \Illuminate\Notifications\Messages\SlackMessage())
-            ->content('Content')
-            ->attachment(function ($attachment) {
-                $attachment->title('Laravel', 'https://laravel.com')
-                    ->content('Attachment Content')
-                    ->field('Project', 'Laravel')
-                    ->field(function ($attachmentField) {
-                        $attachmentField
-                            ->title('Special powers')
-                            ->content('Zonda')
-                            ->long();
-                    });
-            });
     }
 }

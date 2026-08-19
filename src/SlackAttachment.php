@@ -318,49 +318,4 @@ class SlackAttachment
         $this->timestamp = $timestamp->getTimestamp();
         return $this;
     }
-
-	/**
-	 * Create a new SlackAttachment from a Laravel SlackMessage - mostly just for testing purposes
-	 *
-	 * @param \Illuminate\Notifications\Messages\SlackAttachment $laravelAttachment
-	 *
-	 * @return SlackAttachment
-	 */
-    public static function fromLaravel(\Illuminate\Notifications\Messages\SlackAttachment $laravelAttachment)
-    {
-    	$attachment = new self;
-    	$attachment->title = $laravelAttachment->title;
-    	$attachment->url = $laravelAttachment->url;
-    	$attachment->pretext = $laravelAttachment->pretext;
-    	$attachment->content = $laravelAttachment->content;
-    	$attachment->fallback = $laravelAttachment->fallback;
-    	$attachment->color = $laravelAttachment->color;
-
-    	if (!empty($laravelAttachment->fields))
-	    {
-	        foreach ($laravelAttachment->fields as $title => $content)
-		    {
-		        if (is_object($content) && $content instanceof \Illuminate\Notifications\Messages\SlackAttachmentField)
-			    {
-				    $attachment->fields[] = SlackAttachmentField::fromLaravel($content);
-			    }
-			    else
-			    {
-			        $attachment->fields[$title] = $content;
-			    }
-		    }
-	    }
-
-	    $attachment->markdown = $laravelAttachment->markdown;
-    	$attachment->imageUrl = $laravelAttachment->imageUrl;
-    	$attachment->thumbUrl = $laravelAttachment->thumbUrl;
-    	$attachment->authorName = $laravelAttachment->authorName;
-    	$attachment->authorLink = $laravelAttachment->authorLink;
-    	$attachment->authorIcon = $laravelAttachment->authorIcon;
-    	$attachment->footer = $laravelAttachment->footer;
-    	$attachment->footerIcon = $laravelAttachment->footerIcon;
-    	$attachment->timestamp = $laravelAttachment->timestamp;
-
-    	return $attachment;
-    }
 }

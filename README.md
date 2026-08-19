@@ -48,7 +48,6 @@ for information on generating Slack messages. The syntax is largely the same as 
 need to use Notifiable classes - we can generate and send our Slack Messages directly.
 
 ```php
-use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Hampel\SlackMessage\SlackMessage;
 use Hampel\SlackMessage\SlackWebhook;
@@ -71,7 +70,7 @@ $message = $slack->message(function ($message) {
                 ->footerIcon('https://laravel.com/fake.png')
                 ->markdown(['text'])
                 ->author('Author', 'https://laravel.com/fake_author', 'https://laravel.com/fake_author.png')
-                ->timestamp(Carbon::now());
+                ->timestamp(new DateTimeImmutable());
         });
 });
 
