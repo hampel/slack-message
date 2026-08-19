@@ -24,7 +24,7 @@ if ($token === false || $token === '') {
     $io->error('SLACK_BOT_TOKEN is not set. Copy .env.example to .env beside the package.');
     $io->info('  The app needs the chat:write, chat:write.public and chat:write.customize scopes.');
 
-    $io->info('  docs/slack-setup.md covers how to obtain one.');
+    $io->info('  The README covers how to obtain one, under Setting up Slack credentials.');
 
     exit(1);
 }

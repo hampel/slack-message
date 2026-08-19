@@ -22,7 +22,7 @@ $url = getenv('SLACK_WEBHOOK_URL');
 if ($url === false || $url === '') {
     $io->error('SLACK_WEBHOOK_URL is not set. Copy .env.example to .env beside the package.');
 
-    $io->info('  docs/slack-setup.md covers how to obtain one.');
+    $io->info('  The README covers how to obtain one, under Setting up Slack credentials.');
 
     exit(1);
 }
