@@ -41,9 +41,12 @@ class SlackMessageTest extends TestCase
     #[DataProvider('payloadDataProviderLaravel')]
     public function testCorrectPayloadIsSentToSlackLaravel(Notification $notification, array $payload)
     {
-        $this->guzzleHttp->shouldReceive('post')->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
-            $this->assertEquals($argUrl, 'url');
-            $this->assertEquals($argPayload, $payload);
+        $this->guzzleHttp->shouldReceive('post')->once()->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
+            self::ksortDeep($argPayload);
+            self::ksortDeep($payload);
+
+            $this->assertSame('url', $argUrl);
+            $this->assertSame($payload, $argPayload);
             return new Response();
         });
         $this->slackChannel->send(new NotificationSlackChannelTestNotifiable, $notification);
@@ -56,12 +59,37 @@ class SlackMessageTest extends TestCase
     #[DataProvider('payloadDataProviderStandalone')]
     public function testCorrectPayloadIsSentToSlackStandalone(SlackMessage $message, array $payload)
     {
-        $this->guzzleHttp->shouldReceive('post')->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
-        	$this->assertEquals($argUrl, 'url');
-            $this->assertEquals($argPayload, $payload);
+        $this->guzzleHttp->shouldReceive('post')->once()->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
+            self::ksortDeep($argPayload);
+            self::ksortDeep($payload);
+
+            $this->assertSame('url', $argUrl);
+            $this->assertSame($payload, $argPayload);
             return new Response();
         });
         $this->slackWebhook->send('url', $message);
+    }
+
+    /**
+     * Sort an array by key, recursively.
+     *
+     * Slack does not care what order the keys of a JSON object arrive in, so the payload
+     * fixtures are written in reading order rather than the order buildJsonPayload() emits.
+     * Sorting both sides lets the comparison be strict about types and about the order of
+     * list elements, which do matter.
+     *
+     * @param  array  $array
+     *
+     * @return void
+     */
+    private static function ksortDeep(array &$array)
+    {
+        ksort($array);
+
+        foreach ($array as &$value)
+        {
+            if (is_array($value)) self::ksortDeep($value);
+        }
     }
 
     public static function payloadDataProviderLaravel()
