@@ -1,6 +1,35 @@
 CHANGELOG
 =========
 
+2.1.0 (2026-08-19)
+------------------
+
+Says whether Slack accepted the message, and documents the route that needs it.
+
+### Added
+
+* `accepted()` reports whether Slack took the message, and `error()` names the reason it did not.
+  An incoming webhook reports failure as an HTTP status; the Web API answers `200` whatever happens
+  and puts the outcome in an `ok` field, so a refusal and a delivery are indistinguishable from the
+  status alone. Neither method consumes the response
+
+### Changed
+
+* `harness/` holds exercises for [hampel/rig](https://github.com/hampel/rig), which post to a real
+  webhook and show the result rather than asserting against a fixture. Not shipped, and not run by CI
+
+### Documentation
+
+* the README covers sending through Slack's Web API as well as to an incoming webhook: the same
+  builders and the same payload, posted to `chat.postMessage` with a bot token in a header
+* a modern incoming webhook ignores `from()`, `image()` and `to()` — it posts as the Slack app the
+  webhook belongs to, in the channel chosen when the app was installed. The README says so, and says
+  what to use instead
+* `Setting up Slack credentials` covers obtaining a webhook URL and a bot token, what each scope is
+  for, and what Slack's refusal messages mean
+* the README states that this package implements the attachment format, which Slack calls outmoded,
+  so that nobody adopts it expecting Block Kit
+
 2.0.0 (2026-08-19)
 ------------------
 
@@ -23,9 +52,6 @@ Sends over any PSR-18 HTTP client, and no longer carries Laravel to test itself.
 
 ### Added
 
-* `accepted()` reports whether Slack took the message, and `error()` names the reason it did not.
-  An incoming webhook reports failure as an HTTP status; the Web API answers `200` whatever happens
-  and puts the outcome in an `ok` field. Neither method consumes the response
 * `sendPayload()` takes an optional third argument of transport options, carrying request headers
 * requires `psr/http-client`, `psr/http-factory` and `psr/http-message`. Guzzle remains a suggestion
 
