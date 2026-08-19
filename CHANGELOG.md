@@ -1,6 +1,19 @@
 CHANGELOG
 =========
 
+2.2.0 (unreleased)
+------------------
+
+### Changed
+
+* Guzzle 8 is supported and tested. A fresh install has resolved Guzzle 8 since it was released,
+  because Guzzle is a suggestion rather than a requirement and nothing here constrains it — but the
+  development requirement was pinned to `^7.8`, so the version most consumers actually get was the
+  one never exercised. Widened to `^7.8 || ^8.0`, which puts Guzzle 8 in the test matrix
+* CI covers both Guzzle lines: the matrix resolves Guzzle 8, and a named job holds Guzzle 7, which
+  is what XenForo 2.x installs
+* the `guzzlehttp/guzzle` suggestion and the README name both major versions
+
 2.1.0 (2026-08-19)
 ------------------
 
