@@ -9,9 +9,9 @@ Slack Message Builder
 Standalone implementation of Laravel's SlackMessage classes from 
 [illuminate/notifications](https://github.com/illuminate/notifications).
 
-This package provides a mechanism for generating correctly formatted Slack messages and sending them via Guzzle. Ideal 
-for use with simple Slack [inbound webhooks](https://api.slack.com/incoming-webhooks), but can also be used with API 
-calls.
+This package provides a mechanism for generating correctly formatted Slack messages and sending them over any 
+PSR-18 HTTP client. Ideal for use with simple Slack [inbound webhooks](https://api.slack.com/incoming-webhooks), but 
+can also be used with API calls.
 
 By [Simon Hampel](mailto:simon@hampelgroup.com) based on code by [Taylor Otwell](mailto:taylor@laravel.com) and licensed 
 under the [MIT license](https://opensource.org/licenses/MIT).
@@ -19,7 +19,19 @@ under the [MIT license](https://opensource.org/licenses/MIT).
 Prerequisites
 -------------
 
-You will need to supply a Guzzle client (^7.0) to send the Slack messages.
+You will need to supply a [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP client to send the Slack messages, along
+with the [PSR-17](https://www.php-fig.org/psr/psr-17/) factories used to build the request. Guzzle (^7.0) provides
+both, and is discovered automatically when the factories are not supplied:
+
+```php
+$slack = new SlackWebhook(new GuzzleHttp\Client());
+```
+
+Any other PSR-18 client works if you pass the factories yourself:
+
+```php
+$slack = new SlackWebhook($client, $requestFactory, $streamFactory);
+```
 
 Installation
 ------------

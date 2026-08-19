@@ -81,7 +81,9 @@ class SlackMessage
     public $attachments = [];
 
     /**
-     * Additional request options for the Guzzle HTTP client.
+     * Additional options for the transport.
+     *
+     * Only the "headers" key is used; see SlackWebhook::sendPayload().
      *
      * @var array<string, mixed>
      */
@@ -265,7 +267,9 @@ class SlackMessage
     }
 
     /**
-     * Set additional request options for the Guzzle HTTP client.
+     * Set additional options for the transport.
+     *
+     * Only the "headers" key is used; see SlackWebhook::sendPayload().
      *
      * @param  array<string, mixed>  $options
      * @return $this

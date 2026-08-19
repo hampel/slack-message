@@ -5,6 +5,7 @@ use Hampel\SlackMessage\SlackMessage;
 use Mockery as m;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\RequestInterface;
 use Illuminate\Notifications\Notification;
 
 class SlackMessageTest extends TestCase
@@ -26,12 +27,18 @@ class SlackMessageTest extends TestCase
      */
     private $guzzleHttp;
 
+    /**
+     * @var MockInterface|\Psr\Http\Client\ClientInterface
+     */
+    private $psrHttp;
+
     protected function setUp() : void
     {
         parent::setUp();
         $this->guzzleHttp = m::mock('GuzzleHttp\Client');
+        $this->psrHttp = m::mock('Psr\Http\Client\ClientInterface');
         $this->slackChannel = new \Illuminate\Notifications\Channels\SlackWebhookChannel($this->guzzleHttp);
-        $this->slackWebhook = new \Hampel\SlackMessage\SlackWebhook($this->guzzleHttp);
+        $this->slackWebhook = new \Hampel\SlackMessage\SlackWebhook($this->psrHttp);
     }
 
     /**
@@ -59,12 +66,18 @@ class SlackMessageTest extends TestCase
     #[DataProvider('payloadDataProviderStandalone')]
     public function testCorrectPayloadIsSentToSlackStandalone(SlackMessage $message, array $payload)
     {
-        $this->guzzleHttp->shouldReceive('post')->once()->andReturnUsing(function ($argUrl, $argPayload) use ($payload) {
-            self::ksortDeep($argPayload);
-            self::ksortDeep($payload);
+        $this->psrHttp->shouldReceive('sendRequest')->once()->andReturnUsing(function (RequestInterface $request) use ($payload) {
+            $this->assertSame('POST', $request->getMethod());
+            $this->assertSame('url', (string) $request->getUri());
+            $this->assertSame('application/json', $request->getHeaderLine('Content-Type'));
 
-            $this->assertSame('url', $argUrl);
-            $this->assertSame($payload, $argPayload);
+            $sent = json_decode((string) $request->getBody(), true);
+            $expected = $payload['json'];
+
+            self::ksortDeep($sent);
+            self::ksortDeep($expected);
+
+            $this->assertSame($expected, $sent);
             return new Response();
         });
         $this->slackWebhook->send('url', $message);
