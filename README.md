@@ -1,6 +1,7 @@
 Slack Message Builder
 =====================
 
+[![Tests](https://github.com/hampel/slack-message/actions/workflows/tests.yml/badge.svg)](https://github.com/hampel/slack-message/actions/workflows/tests.yml)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/hampel/slack-message.svg?style=flat-square)](https://packagist.org/packages/hampel/slack-message)
 [![Total Downloads](https://img.shields.io/packagist/dt/hampel/slack-message.svg?style=flat-square)](https://packagist.org/packages/hampel/slack-message)
 [![Open Issues](https://img.shields.io/github/issues-raw/hampel/slack-message.svg?style=flat-square)](https://github.com/hampel/slack-message/issues)
