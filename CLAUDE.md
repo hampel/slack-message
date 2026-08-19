@@ -1,0 +1,100 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this package is
+
+`hampel/slack-message` is a standalone port of Laravel's Slack message classes from
+`illuminate/notifications` — the builders plus the webhook channel, extracted so a plain PHP
+application can format and send Slack messages without pulling in the framework or using
+Notifiable classes.
+
+**Upstream parity is the design constraint.** The builder API deliberately mirrors Laravel's
+(`->content()`, `->attachment(fn)`, `->fields()`, `->from()`, `->to()`) so that Laravel's Slack
+notification documentation applies unchanged. Do not "improve" a method signature or rename a
+property without a reason that outweighs breaking that parity.
+
+## Commands
+
+```bash
+composer install
+composer test                                         # phpunit
+composer analyse                                      # phpstan, level 9 on src
+composer lint                                         # pint --test
+composer format                                       # pint, applying the fixes
+composer check                                        # all three
+vendor/bin/phpunit --filter testTheMessageLevelColoursTheAttachment
+vendor/bin/phpunit --filter 'payloadWithIcon'         # one data-provider case
+```
+
+Style is PSR-12, enforced by Pint. The test run fails on deprecations, notices, risky tests
+and warnings.
+
+`tests/production-install.php` is not part of the PHPUnit suite. It runs against
+`composer install --no-dev`, where Guzzle is absent, and is the only place the missing-factory
+path can be reached — CI runs it as its own job.
+
+## Architecture
+
+Four classes in `src/`, in two distinct roles:
+
+**Builders — `SlackMessage`, `SlackAttachment`, `SlackAttachmentField`.** Fluent setters over
+public properties. They hold state and validate nothing; they never serialise. `SlackMessage`
+carries a `level` (info/success/warning/error) that `color()` maps to Slack's `good`/`warning`/
+`danger` — note `info` maps to *no* colour (`color()` returns null).
+
+**Serialiser/transport — `SlackWebhook`.** All knowledge of Slack's wire format lives here, in
+`buildPayload()` → `attachments()` → `fields()`. Property-name to Slack-field-name mapping
+(`$attachment->url` → `title_link`, `$attachment->content` → `text`, …) is in `attachments()`
+and nowhere else. Every level uses `array_filter`, so null/empty/`0` values are dropped from the
+payload rather than sent — this is why optional fields simply vanish, and why `linkNames`
+defaults to `0`.
+
+Three things about `SlackWebhook` that surprise people:
+
+- **`send()` / `sendPayload()` are split on purpose** (since 1.0.2) so payload construction can
+  happen somewhere other than the sending process — e.g. build now, queue, send later. Both
+  return the `ResponseInterface`. `buildPayload()` returns the Slack payload itself, so it
+  survives being JSON-encoded into a queue and read back.
+- **`sendPayload()` unwraps a version 1 payload.** Version 1's `buildJsonPayload()` returned
+  Guzzle request options — `['json' => [...slack payload...]]` merged with `$message->http` — and
+  a payload built that way may still be sitting in a queue written before the upgrade. A
+  top-level `json` key is therefore treated as that wrapper and unwrapped.
+- **The client is PSR-18, the factories PSR-17.** When the factories are not supplied the
+  constructor looks for `GuzzleHttp\Psr7\HttpFactory` and throws if it is absent. PSR-18 has no
+  per-request options, so `SlackMessage::http()` now contributes only headers; timeouts and
+  proxies belong on the client.
+
+Per-attachment `color` falls back to the parent message's level colour, so the message level
+tints all attachments unless one overrides it.
+
+## How parity is held
+
+The payload fixtures in `tests/SlackMessageTest.php` **are** the spec. When changing anything in
+`buildPayload()`, that test is what you are changing it against.
+
+Those fixtures were verified byte for byte against the payloads Laravel's own
+`SlackWebhookChannel` builds, at `laravel/framework` 13.26.1 and
+`laravel/slack-notification-channel` 3.10.0. Laravel is no longer a dependency: upstream froze
+these three classes years ago — the v2.5.0 to v3.10.0 diff is docblocks plus a note marking them
+legacy — and Slack deprecated the attachment format itself, so there is nothing left to track.
+Carrying the framework to watch for a change that cannot come cost 72 packages and exposed the
+package's CI to framework advisories that had nothing to do with sending a webhook.
+
+If you ever do need to re-check parity, add `laravel/slack-notification-channel` back as a dev
+dependency, convert the fixtures with a throwaway `fromLaravel()`, and compare. Version 1 shipped
+such a method on each builder; it was removed in 2.0 because nothing outside the test suite ever
+called it and its `\Illuminate\...` type hints would fatal in a production install.
+
+Guzzle is a `suggest`, not a `require` — the caller constructs and injects the client. Only the
+PSR interface packages are required.
+
+## Constraints worth knowing before editing
+
+- `composer.json` declares `"php": "^8.3"`, but the source predates it — no scalar type hints,
+  no return types, docblocks carry the types. That is about type declarations, not formatting:
+  PSR-12 has nothing to say about it and Pint will not add them. Match the surrounding style;
+  changing the supported versions is a policy decision, not a drive-by change (see
+  `/srv/www/version-support.html`).
+- PHPStan runs at level 9 over `src` with no baseline, across PHP 8.3 to 8.5. Keep it clean.
+- `SlackAttachment::timestamp()` accepts any `\DateTimeInterface`, so Carbon is not needed.
