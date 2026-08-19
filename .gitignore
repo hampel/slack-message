@@ -12,6 +12,7 @@ composer.lock
 
 /.idea
 /.phpunit.cache
+/.phpunit.result.cache
 
 # Also unanchored: local notes carry internal detail that has no business in a public repo,
 # wherever in the tree they end up.
