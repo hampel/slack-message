@@ -85,6 +85,33 @@ $message = $slack->message(function ($message) {
 $slack->send($url, $message);
 ```
 
+### What an incoming webhook ignores
+
+`from()`, `image()` and `to()` set Slack's `username`, `icon_emoji`/`icon_url` and `channel`
+fields. A modern incoming webhook ignores all three:
+
+> You cannot override the default channel (chosen by the user who installed your app), username,
+> or icon when you're using incoming webhooks to post messages. Instead, these values will always
+> inherit from the associated Slack app configuration.
+>
+> — [Sending messages using incoming webhooks](https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks)
+
+The message posts as the Slack app the webhook belongs to, in the channel chosen when the app was
+installed. Older custom-integration webhooks honoured these fields, which is why the builders
+carry them. There is no configuration that restores the behaviour.
+
+Slack's Web API does honour them, with the `chat:write.customize` scope. The same payload can be
+posted to `chat.postMessage` instead, with a bot token supplied as a header:
+
+```php
+$message->http(['headers' => ['Authorization' => 'Bearer xoxb-your-token']]);
+
+$slack->send('https://slack.com/api/chat.postMessage', $message);
+```
+
+Note that `chat.postMessage` reports failure as `"ok": false` in a `200` response, rather than as
+an HTTP status. Check the body, not the code.
+
 Building now, sending later
 ---------------------------
 
