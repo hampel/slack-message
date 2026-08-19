@@ -20,7 +20,9 @@ $io->title('slack-message · legacy');
 $url = getenv('SLACK_WEBHOOK_URL');
 
 if ($url === false || $url === '') {
-    $io->error('SLACK_WEBHOOK_URL is not set. Put it in a .env file beside the package.');
+    $io->error('SLACK_WEBHOOK_URL is not set. Copy .env.example to .env beside the package.');
+
+    $io->info('  docs/slack-setup.md covers how to obtain one.');
 
     exit(1);
 }

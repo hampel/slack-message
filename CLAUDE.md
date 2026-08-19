@@ -50,7 +50,8 @@ vendor/bin/rig api              # chat.postMessage, and a refusal behind a 200
 ```
 
 `api` needs `SLACK_BOT_TOKEN` and `SLACK_CHANNEL`; the other sending exercises need
-`SLACK_WEBHOOK_URL`. All of them go in a `.env` beside the package. `.env` is
+`SLACK_WEBHOOK_URL`. All of them go in a `.env` beside the package — copy `.env.example`.
+`docs/slack-setup.md` covers obtaining each of them, and what Slack's refusal messages mean. `.env` is
 gitignored and `harness/` is `export-ignore`d.
 
 Reach for an exercise when the question is "does Slack accept this" or "does this read well in a

@@ -21,14 +21,16 @@ $token = getenv('SLACK_BOT_TOKEN');
 $channel = getenv('SLACK_CHANNEL');
 
 if ($token === false || $token === '') {
-    $io->error('SLACK_BOT_TOKEN is not set. Put it in a .env file beside the package.');
+    $io->error('SLACK_BOT_TOKEN is not set. Copy .env.example to .env beside the package.');
     $io->info('  The app needs the chat:write, chat:write.public and chat:write.customize scopes.');
+
+    $io->info('  docs/slack-setup.md covers how to obtain one.');
 
     exit(1);
 }
 
 if ($channel === false || $channel === '') {
-    $io->error('SLACK_CHANNEL is not set. Put it in a .env file beside the package.');
+    $io->error('SLACK_CHANNEL is not set. Copy .env.example to .env beside the package.');
 
     exit(1);
 }

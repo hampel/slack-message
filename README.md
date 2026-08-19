@@ -41,6 +41,10 @@ Any other PSR-18 client works if you pass the factories yourself:
 $slack = new SlackWebhook($client, $requestFactory, $streamFactory);
 ```
 
+You will also need somewhere to send to.
+[Setting up Slack credentials](https://github.com/hampel/slack-message/blob/master/docs/slack-setup.md)
+walks through creating an incoming webhook URL, and a bot token for the Web API.
+
 Installation
 ------------
 
