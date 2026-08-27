@@ -1,0 +1,20 @@
+# Analysis of what a consumer actually installs.
+#
+# The dev dependencies supply classes that src/ must not be using: Guzzle, PHPUnit, Mockery.
+# With them present - which is every local run and every other CI job - a `use` of one of them
+# resolves and nothing reports it, and the consumer, who has none of them, gets a fatal.
+#
+# So this runs against `composer install --no-dev`, and it cannot use phpstan.neon: that config
+# is the one being escaped from, and PHPStan discovers it from the working directory unless a
+# `-c` is given. Level 0 is the whole point - not-found is a basic check, and a higher level
+# only adds noise from types that legitimately live in dev.
+#
+# PHPStan itself is a dev dependency, so `--no-dev` deletes it. CI installs a standalone binary
+# with setup-php's `tools:` instead. Running one borrowed from another package's vendor/ in
+# place would lend this package that package's dependencies and report [OK] on the very class
+# this exists to catch.
+
+parameters:
+    level: 0
+    paths:
+        - src

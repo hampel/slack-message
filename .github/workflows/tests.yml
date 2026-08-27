@@ -99,6 +99,10 @@ jobs:
           php-version: '8.3'
           extensions: ""
           coverage: none
+          # PHPStan is a dev dependency, so the install below deletes it. This is a
+          # standalone binary outside every vendor directory, which is the only place it
+          # can run from without lending src/ somebody else's dependencies.
+          tools: phpstan
 
       # What a consumer actually receives. Guzzle is only a suggestion, so this
       # is the one job with no HTTP client present at all: it proves src/ needs
@@ -107,6 +111,12 @@ jobs:
       - run: composer install --no-dev --prefer-dist --no-progress
 
       - run: php tests/production-install.php
+
+      # The script above proves the paths it executes. This covers the rest: a class
+      # supplied by a dev dependency resolves in every other job and fatals for the
+      # consumer. -c is not optional - without it PHPStan discovers phpstan.neon, which
+      # is the config being escaped from.
+      - run: phpstan analyse -c phpstan-nodev.neon --autoload-file=vendor/autoload.php --no-progress
 
   analyse:
     name: Static analysis
