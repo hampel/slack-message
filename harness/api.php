@@ -75,17 +75,24 @@ $io->values([
 
 $io->line();
 
-$io->attempt(($deliver ? 'post to ' : 'build a request for ') . $channel, function () use ($slack, $url, $message, $io) {
+// attempt() prints its verdict once the callback has returned, so anything the callback
+// prints lands above the line saying what was attempted. Carry the response back out and
+// read it here instead.
+$response = null;
+
+$io->attempt(($deliver ? 'post to ' : 'build a request for ') . $channel, function () use ($slack, $url, $message, &$response) {
     $response = $slack->send($url, $message);
 
+    return $slack->accepted($response) ? 'delivered' : 'refused';
+});
+
+if ($response !== null) {
     $io->values([
         'status' => $response->getStatusCode(),
         'accepted' => $slack->accepted($response),
         'error' => $slack->error($response),
     ]);
-
-    return $slack->accepted($response) ? 'delivered' : 'refused';
-});
+}
 
 $io->line();
 $io->info('  and the same thing to a channel that does not exist, which the Web API answers');
@@ -98,20 +105,24 @@ $refused = $slack->message(function ($message) use ($authorised) {
         ->http($authorised);
 });
 
+$response = null;
+
 $io->attempt(
     $deliver ? 'post to a channel that does not exist' : 'build a request for a channel that does not exist',
-    function () use ($slack, $url, $refused, $io) {
+    function () use ($slack, $url, $refused, &$response) {
         $response = $slack->send($url, $refused);
-
-        $io->values([
-            'status' => $response->getStatusCode(),
-            'accepted' => $slack->accepted($response),
-            'error' => $slack->error($response),
-        ]);
 
         return $slack->accepted($response) ? 'delivered' : 'refused';
     }
 );
+
+if ($response !== null) {
+    $io->values([
+        'status' => $response->getStatusCode(),
+        'accepted' => $slack->accepted($response),
+        'error' => $slack->error($response),
+    ]);
+}
 
 if ($sink !== null) {
     Harness::showRequests($io, $sink);

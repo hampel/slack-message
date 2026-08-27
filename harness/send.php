@@ -49,17 +49,24 @@ $message = $slack->message(function ($message) {
 
 $io->value('bytes', strlen((string) json_encode($slack->buildPayload($message))));
 
-$io->attempt($deliver ? 'post to the webhook' : 'build the request, and stop', function () use ($slack, $url, $message, $io) {
+// attempt() prints its verdict once the callback has returned, so anything the callback
+// prints lands above the line saying what was attempted. Carry the response back out and
+// read it here instead.
+$response = null;
+
+$io->attempt($deliver ? 'post to the webhook' : 'build the request, and stop', function () use ($slack, $url, $message, &$response) {
     $response = $slack->send($url, $message);
 
+    return trim((string) $response->getBody());
+});
+
+if ($response !== null) {
     $io->values([
         'status' => $response->getStatusCode(),
         'accepted' => $slack->accepted($response),
         'error' => $slack->error($response),
     ]);
-
-    return trim((string) $response->getBody());
-});
+}
 
 if ($sink !== null) {
     Harness::showRequests($io, $sink);
