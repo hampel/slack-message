@@ -50,8 +50,10 @@ $built = $slack->buildPayload($message);
 // What the sending process gets back out of it.
 $queued = json_decode((string) json_encode($built), true);
 
-$io->value('built', strlen((string) json_encode($built)) . ' bytes');
-$io->value('survived', $queued === $built ? 'identical' : 'CHANGED IN TRANSIT');
+$io->values([
+    'built' => strlen((string) json_encode($built)) . ' bytes',
+    'survived' => $queued === $built ? 'identical' : 'CHANGED IN TRANSIT',
+]);
 
 $io->attempt(
     $deliver ? 'send the payload that came out of the queue' : 'build the request from it, and stop',

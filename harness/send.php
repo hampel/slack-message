@@ -52,9 +52,11 @@ $io->value('bytes', strlen((string) json_encode($slack->buildPayload($message)))
 $io->attempt($deliver ? 'post to the webhook' : 'build the request, and stop', function () use ($slack, $url, $message, $io) {
     $response = $slack->send($url, $message);
 
-    $io->value('status', $response->getStatusCode());
-    $io->value('accepted', $slack->accepted($response));
-    $io->value('error', $slack->error($response));
+    $io->values([
+        'status' => $response->getStatusCode(),
+        'accepted' => $slack->accepted($response),
+        'error' => $slack->error($response),
+    ]);
 
     return trim((string) $response->getBody());
 });

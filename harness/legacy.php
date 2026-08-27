@@ -47,8 +47,10 @@ $legacy = [
     'headers' => ['X-Sent-By' => 'rig'],
 ];
 
-$io->value('queued', array_keys($legacy));
-$io->value('sent', array_keys($slack->buildPayload($message)));
+$io->values([
+    'queued' => array_keys($legacy),
+    'sent' => array_keys($slack->buildPayload($message)),
+]);
 
 $io->line();
 $io->info('  everything alongside the json key is discarded, headers included: there is no');

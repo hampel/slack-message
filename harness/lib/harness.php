@@ -106,12 +106,18 @@ class Harness
             $io->info('  request ' . ($index + 1) . ' of ' . count($sink->requests) . ', which was not sent');
             $io->line();
 
-            $io->value('method', $request->getMethod());
-            $io->value('uri', (string) $request->getUri());
+            // One group, so a header name longer than value()'s column widens the whole
+            // block rather than leaving the lines around it at ragged indents.
+            $lines = [
+                'method' => $request->getMethod(),
+                'uri' => (string) $request->getUri(),
+            ];
 
             foreach ($request->getHeaders() as $name => $values) {
-                $io->value($name, implode(', ', $values));
+                $lines[$name] = implode(', ', $values);
             }
+
+            $io->values($lines);
 
             $io->line();
             $io->line((string) json_encode(

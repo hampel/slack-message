@@ -51,6 +51,8 @@ $io->line(json_encode($slack->buildPayload($message), JSON_PRETTY_PRINT | JSON_U
 $io->line();
 $io->info('  the level of a message tints its attachments');
 
+$colours = [];
+
 foreach (['(none)', 'info', 'success', 'warning', 'error'] as $level) {
     $message = new SlackMessage();
 
@@ -64,5 +66,8 @@ foreach (['(none)', 'info', 'success', 'warning', 'error'] as $level) {
 
     $attachment = $slack->buildPayload($message)['attachments'][0];
 
-    $io->value($level, $attachment['color'] ?? '(no colour sent)');
+    $colours[$level] = $attachment['color'] ?? '(no colour sent)';
 }
+
+// One call, so the five colours share a column and can be read against each other.
+$io->values($colours);

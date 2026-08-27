@@ -67,18 +67,22 @@ $message = $slack->message(function ($message) use ($channel, $authorised) {
 
 $io->info('  the fields a webhook throws away');
 $payload = $slack->buildPayload($message);
-$io->value('username', $payload['username'] ?? '(not set)');
-$io->value('icon_emoji', $payload['icon_emoji'] ?? '(not set)');
-$io->value('channel', $payload['channel'] ?? '(not set)');
+$io->values([
+    'username' => $payload['username'] ?? '(not set)',
+    'icon_emoji' => $payload['icon_emoji'] ?? '(not set)',
+    'channel' => $payload['channel'] ?? '(not set)',
+]);
 
 $io->line();
 
 $io->attempt(($deliver ? 'post to ' : 'build a request for ') . $channel, function () use ($slack, $url, $message, $io) {
     $response = $slack->send($url, $message);
 
-    $io->value('status', $response->getStatusCode());
-    $io->value('accepted', $slack->accepted($response));
-    $io->value('error', $slack->error($response));
+    $io->values([
+        'status' => $response->getStatusCode(),
+        'accepted' => $slack->accepted($response),
+        'error' => $slack->error($response),
+    ]);
 
     return $slack->accepted($response) ? 'delivered' : 'refused';
 });
@@ -99,9 +103,11 @@ $io->attempt(
     function () use ($slack, $url, $refused, $io) {
         $response = $slack->send($url, $refused);
 
-        $io->value('status', $response->getStatusCode());
-        $io->value('accepted', $slack->accepted($response));
-        $io->value('error', $slack->error($response));
+        $io->values([
+            'status' => $response->getStatusCode(),
+            'accepted' => $slack->accepted($response),
+            'error' => $slack->error($response),
+        ]);
 
         return $slack->accepted($response) ? 'delivered' : 'refused';
     }

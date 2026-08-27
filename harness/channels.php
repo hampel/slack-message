@@ -78,8 +78,10 @@ do {
     // The cap is here so that a cursor that never empties cannot loop forever.
 } while ($cursor !== '' && $pages < 20);
 
-$io->value('pages', $pages);
-$io->value('channels', count($channels));
+$io->values([
+    'pages' => $pages,
+    'channels' => count($channels),
+]);
 
 if ($channels === []) {
     $io->line();
@@ -119,8 +121,10 @@ foreach ($channels as $channel) {
 }
 
 $io->line();
-$io->value('public', $public);
-$io->value('private', count($channels) - $public);
+$io->values([
+    'public' => $public,
+    'private' => count($channels) - $public,
+]);
 
 $io->line();
 $io->info('  Store the ID, not the name: a channel keeps its ID when it is renamed.');
