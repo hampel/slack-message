@@ -83,6 +83,22 @@ well in a channel" — neither of which a test can answer, and neither of which 
 either. `tests/SlackWebhookTest.php` covers whether the payload is *correct*; the harness covers
 whether it is *right*.
 
+### Two things about the output
+
+**`Io::attempt()` prints its verdict after the callback returns**, so anything printed from
+inside the closure lands *above* the line saying what was attempted. Carry the response back out
+by reference and read it after the call, guarded on it still being null so a throw prints
+`attempt()`'s own diagnosis and nothing else. `send` and `api` do this; `queued` and `legacy`
+print nothing from inside theirs.
+
+**Print a group of figures with `Io::values()`, not a run of `Io::value()` calls.** `value()`
+pads to a fixed column of 14 characters, so a longer label keeps its line but loses the column
+and leaves the values around it at ragged indents. `values()` aligns the group to its own widest
+label and never narrower, so short labels read identically. It is what `showRequests()` uses,
+where a header name is not ours to choose, and what every pair that exists to be compared uses —
+`queued` against `sent`, `public` against `private`, `status`/`accepted`/`error`. Needs
+`hampel/rig` at `^1.1`.
+
 ## Architecture
 
 Four classes in `src/`, in two distinct roles:
