@@ -116,7 +116,27 @@ jobs:
       # supplied by a dev dependency resolves in every other job and fatals for the
       # consumer. -c is not optional - without it PHPStan discovers phpstan.neon, which
       # is the config being escaped from.
-      - run: phpstan analyse -c phpstan-nodev.neon --autoload-file=vendor/autoload.php --no-progress
+      - run: phpstan analyse -c .github/phpstan-nodev.neon --autoload-file=vendor/autoload.php --no-progress
+
+      # And the case neither of the two above can see. --no-dev removes require-dev and
+      # nothing else, so anything arriving transitively through psr/http-client,
+      # psr/http-factory or psr/http-message is still installed and still resolves. This
+      # maps every symbol back to the package that supplies it and fails on anything
+      # outside require - including an ext-* nobody declared. It is a dev dependency
+      # itself, so it goes in a scratch directory; composer -d does not create one.
+      - run: |
+          mkdir -p /tmp/crc
+          composer -d /tmp/crc require maglnet/composer-require-checker --no-progress
+
+      # THE WHITELIST HOLDS GUARDED OPTIONAL DEPENDENCIES NAMED IN suggest, AND NOTHING
+      # ELSE. The checker does not model runtime guards, so it reports every dependency
+      # discovered through class_exists() - here GuzzleHttp\Psr7\HttpFactory, which is
+      # exactly that and is in suggest. Adding an entry is a decision that the symbol
+      # really is optional and really is suggested. It is not the way to make this job
+      # green again.
+      - run: >
+          /tmp/crc/vendor/bin/composer-require-checker check
+          --config-file=.github/composer-require-checker.json composer.json
 
   analyse:
     name: Static analysis

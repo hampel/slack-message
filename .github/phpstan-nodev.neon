@@ -14,7 +14,11 @@
 # place would lend this package that package's dependencies and report [OK] on the very class
 # this exists to catch.
 
+# %currentWorkingDirectory% because a relative path in a neon resolves against the directory
+# the config lives in, so a bare `src` here would mean .github/src - which exists nowhere, and
+# which PHPStan reports as [OK] rather than as an error.
+
 parameters:
     level: 0
     paths:
-        - src
+        - %currentWorkingDirectory%/src

@@ -10,7 +10,6 @@
 /harness        export-ignore
 /phpstan.neon   export-ignore
 /phpstan-ceiling.neon export-ignore
-/phpstan-nodev.neon export-ignore
 /phpunit.xml    export-ignore
 /pint.json      export-ignore
 /tests          export-ignore
