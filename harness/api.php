@@ -14,30 +14,40 @@
 
 use GuzzleHttp\Client;
 use Hampel\SlackMessage\SlackWebhook;
+use Psr\Http\Message\RequestInterface;
+
+require_once __DIR__ . '/lib/harness.php';
 
 $io->title('slack-message · api');
 
-$token = getenv('SLACK_BOT_TOKEN');
-$channel = getenv('SLACK_CHANNEL');
+[$deliver, $mode] = Harness::mayDeliver();
 
-if ($token === false || $token === '') {
-    $io->error('SLACK_BOT_TOKEN is not set. Copy .env.example to .env beside the package.');
+Harness::announce($io, $mode);
+
+if (! $deliver) {
     $io->info('  The app needs the chat:write, chat:write.public and chat:write.customize scopes.');
-
-    $io->info('  The README covers how to obtain one, under Setting up Slack credentials.');
-
-    exit(1);
+    $io->line();
 }
 
-if ($channel === false || $channel === '') {
-    $io->error('SLACK_CHANNEL is not set. Copy .env.example to .env beside the package.');
-
-    exit(1);
-}
+$token = Harness::credential($io, $deliver, 'SLACK_BOT_TOKEN', 'bot-token-not-set');
+$channel = Harness::credential($io, $deliver, 'SLACK_CHANNEL', '#general');
 
 $url = 'https://slack.com/api/chat.postMessage';
 
-$slack = new SlackWebhook(new Client());
+// Slack answers chat.postMessage with a 200 whatever happens, so the sink has to as well -
+// a canned 200 carrying ok, and a refusal for the channel the second attempt invents. That
+// keeps accepted() and error() on the same code path they take for real, and it is the one
+// thing in a sink run that is imitation rather than observation.
+$sink = $deliver ? null : new HarnessSink(function (RequestInterface $request) {
+    $body = json_decode((string) $request->getBody(), true);
+    $to = is_array($body) ? ($body['channel'] ?? '') : '';
+
+    return str_starts_with((string) $to, '#no-such-channel-')
+        ? [200, '{"ok":false,"error":"channel_not_found"}']
+        : [200, '{"ok":true}'];
+});
+
+$slack = new SlackWebhook($deliver ? new Client() : $sink);
 
 $authorised = ['headers' => ['Authorization' => 'Bearer ' . $token]];
 
@@ -63,7 +73,7 @@ $io->value('channel', $payload['channel'] ?? '(not set)');
 
 $io->line();
 
-$io->attempt('post to ' . $channel, function () use ($slack, $url, $message, $io) {
+$io->attempt(($deliver ? 'post to ' : 'build a request for ') . $channel, function () use ($slack, $url, $message, $io) {
     $response = $slack->send($url, $message);
 
     $io->value('status', $response->getStatusCode());
@@ -84,12 +94,24 @@ $refused = $slack->message(function ($message) use ($authorised) {
         ->http($authorised);
 });
 
-$io->attempt('post to a channel that does not exist', function () use ($slack, $url, $refused, $io) {
-    $response = $slack->send($url, $refused);
+$io->attempt(
+    $deliver ? 'post to a channel that does not exist' : 'build a request for a channel that does not exist',
+    function () use ($slack, $url, $refused, $io) {
+        $response = $slack->send($url, $refused);
 
-    $io->value('status', $response->getStatusCode());
-    $io->value('accepted', $slack->accepted($response));
-    $io->value('error', $slack->error($response));
+        $io->value('status', $response->getStatusCode());
+        $io->value('accepted', $slack->accepted($response));
+        $io->value('error', $slack->error($response));
 
-    return $slack->accepted($response) ? 'delivered' : 'refused';
-});
+        return $slack->accepted($response) ? 'delivered' : 'refused';
+    }
+);
+
+if ($sink !== null) {
+    Harness::showRequests($io, $sink);
+
+    $io->line();
+    $io->warn('  Nothing was posted. The requests above are what Slack would have received, but');
+    $io->warn('  the two responses were written here, not by Slack - so this run shows that');
+    $io->warn('  accepted() reads ok, and not that chat.postMessage still answers that way.');
+}

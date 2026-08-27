@@ -55,9 +55,33 @@ and `groups:read` on the app, and the other sending exercises need `SLACK_WEBHOO
 The README covers obtaining each of them, and what Slack's refusal messages mean. `.env` is
 gitignored and `harness/` is `export-ignore`d.
 
-Reach for an exercise when the question is "does Slack accept this" or "does this read well in a
-channel" — neither of which a test can answer. `tests/SlackWebhookTest.php` covers whether the
-payload is *correct*; the harness covers whether it is *right*.
+### Nothing is posted unless you say so
+
+`send`, `queued`, `legacy` and `api` default to a **sink**: the transport is swapped for a PSR-18
+client that records the request and answers with a canned response, so the exercise runs every
+line it normally would and only the wire is missing. Two switches open it, and every branch that
+is not exactly `1` falls back to the sink:
+
+```bash
+SLACK_DELIVER=1                 # the ordinary opt-in; belongs in .env
+SLACK_AGENT_MAY_DELIVER=1       # an agent, asked to send for real, this once; never in .env
+```
+
+`SLACK_DELIVER` alone is ignored when `CLAUDECODE` is set, because a `.env` written months ago
+cannot say whether a person or an agent is at the keyboard. `channels` is unguarded — it is a
+read-only GET that delivers nothing.
+
+The mode is printed above the work, and a sink run says which questions it did not answer. **Read
+that line.** `Harness::mayDeliver()` and `HarnessSink` live in `harness/lib/harness.php`, which is
+not itself an exercise — rig discovers `harness/*.php` at the top level only.
+
+A sink run is worth having on its own: it prints the outgoing PSR-7 request, which is the only
+view that shows the URI, the content type and whether a version 1 payload arrived unwrapped.
+
+Reach for a *delivering* exercise when the question is "does Slack accept this" or "does this read
+well in a channel" — neither of which a test can answer, and neither of which a sink run answers
+either. `tests/SlackWebhookTest.php` covers whether the payload is *correct*; the harness covers
+whether it is *right*.
 
 ## Architecture
 

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Exercise: send a payload built by version 1.
+ * Exercise: post a payload built by version 1 to a real webhook.
  *
  * Version 1's buildJsonPayload() returned Guzzle request options, with the message under a
  * json key. A payload in that shape may still be sitting in a queue written before the
@@ -15,19 +15,19 @@
 use GuzzleHttp\Client;
 use Hampel\SlackMessage\SlackWebhook;
 
+require_once __DIR__ . '/lib/harness.php';
+
 $io->title('slack-message · legacy');
 
-$url = getenv('SLACK_WEBHOOK_URL');
+[$deliver, $mode] = Harness::mayDeliver();
 
-if ($url === false || $url === '') {
-    $io->error('SLACK_WEBHOOK_URL is not set. Copy .env.example to .env beside the package.');
+Harness::announce($io, $mode);
 
-    $io->info('  The README covers how to obtain one, under Setting up Slack credentials.');
+$url = Harness::credential($io, $deliver, 'SLACK_WEBHOOK_URL', 'https://hooks.slack.example/webhook-url-not-set');
 
-    exit(1);
-}
+$sink = $deliver ? null : new HarnessSink();
 
-$slack = new SlackWebhook(new Client());
+$slack = new SlackWebhook($deliver ? new Client() : $sink);
 
 $message = $slack->message(function ($message) {
     $message
@@ -56,14 +56,26 @@ $io->info('  PSR-18 equivalent of a Guzzle request option. Pass headers to sendP
 $io->info('  its third argument instead.');
 $io->line();
 
-$io->attempt('send the version 1 payload', function () use ($slack, $url, $legacy) {
+$io->attempt($deliver ? 'send the version 1 payload' : 'build the request for it, and stop', function () use ($slack, $url, $legacy) {
     $response = $slack->sendPayload($url, $legacy);
 
     return $response->getStatusCode() . ' ' . trim((string) $response->getBody());
 });
 
-$io->attempt('send it again, with the headers where they now belong', function () use ($slack, $url, $legacy) {
-    $response = $slack->sendPayload($url, $legacy, ['headers' => ['X-Sent-By' => 'rig']]);
+$io->attempt(
+    $deliver ? 'send it again, with the headers where they now belong' : 'build it again, with the headers where they now belong',
+    function () use ($slack, $url, $legacy) {
+        $response = $slack->sendPayload($url, $legacy, ['headers' => ['X-Sent-By' => 'rig']]);
 
-    return $response->getStatusCode() . ' ' . trim((string) $response->getBody());
-});
+        return $response->getStatusCode() . ' ' . trim((string) $response->getBody());
+    }
+);
+
+if ($sink !== null) {
+    Harness::showRequests($io, $sink);
+
+    $io->line();
+    $io->warn('  Nothing was posted. This is the run where the sink earns its place: the first');
+    $io->warn('  request carries no X-Sent-By and no json key, the second carries the header.');
+    $io->warn('  Only Slack can say whether it accepts either.');
+}

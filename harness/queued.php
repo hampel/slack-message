@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Exercise: build a payload here, send it as if from somewhere else.
+ * Exercise: build a payload here, post it to a real webhook as if from somewhere else.
  *
  * This is the path the XenForo add-on takes: build the payload in a web request, store it
  * in a job queue, send it from the job runner. The payload is JSON encoded and decoded in
@@ -16,19 +16,19 @@
 use GuzzleHttp\Client;
 use Hampel\SlackMessage\SlackWebhook;
 
+require_once __DIR__ . '/lib/harness.php';
+
 $io->title('slack-message · queued');
 
-$url = getenv('SLACK_WEBHOOK_URL');
+[$deliver, $mode] = Harness::mayDeliver();
 
-if ($url === false || $url === '') {
-    $io->error('SLACK_WEBHOOK_URL is not set. Copy .env.example to .env beside the package.');
+Harness::announce($io, $mode);
 
-    $io->info('  The README covers how to obtain one, under Setting up Slack credentials.');
+$url = Harness::credential($io, $deliver, 'SLACK_WEBHOOK_URL', 'https://hooks.slack.example/webhook-url-not-set');
 
-    exit(1);
-}
+$sink = $deliver ? null : new HarnessSink();
 
-$slack = new SlackWebhook(new Client());
+$slack = new SlackWebhook($deliver ? new Client() : $sink);
 
 $message = $slack->message(function ($message) {
     $message
@@ -53,8 +53,19 @@ $queued = json_decode((string) json_encode($built), true);
 $io->value('built', strlen((string) json_encode($built)) . ' bytes');
 $io->value('survived', $queued === $built ? 'identical' : 'CHANGED IN TRANSIT');
 
-$io->attempt('send the payload that came out of the queue', function () use ($slack, $url, $queued) {
-    $response = $slack->sendPayload($url, $queued);
+$io->attempt(
+    $deliver ? 'send the payload that came out of the queue' : 'build the request from it, and stop',
+    function () use ($slack, $url, $queued) {
+        $response = $slack->sendPayload($url, $queued);
 
-    return $response->getStatusCode() . ' ' . trim((string) $response->getBody());
-});
+        return $response->getStatusCode() . ' ' . trim((string) $response->getBody());
+    }
+);
+
+if ($sink !== null) {
+    Harness::showRequests($io, $sink);
+
+    $io->line();
+    $io->warn('  Nothing was posted. The round trip above is real - it is plain JSON either way -');
+    $io->warn('  but whether Slack accepts what came out of it is unanswered.');
+}
