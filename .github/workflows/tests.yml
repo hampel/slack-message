@@ -128,15 +128,12 @@ jobs:
           mkdir -p /tmp/crc
           composer -d /tmp/crc require maglnet/composer-require-checker --no-progress
 
-      # THE WHITELIST HOLDS GUARDED OPTIONAL DEPENDENCIES NAMED IN suggest, AND NOTHING
-      # ELSE. The checker does not model runtime guards, so it reports every dependency
-      # discovered through class_exists() - here GuzzleHttp\Psr7\HttpFactory, which is
-      # exactly that and is in suggest. Adding an entry is a decision that the symbol
-      # really is optional and really is suggested. It is not the way to make this job
-      # green again.
-      - run: >
-          /tmp/crc/vendor/bin/composer-require-checker check
-          --config-file=.github/composer-require-checker.json composer.json
+      # No whitelist, and there should not need to be one. The optional PSR-17 factories are
+      # found by class name held in a string, which the checker does not see as a symbol. If
+      # this job ever reports an optional dependency, find it the same way rather than
+      # adding a config file to excuse it: a whitelist entry is a standing exception that
+      # nobody re-reads.
+      - run: /tmp/crc/vendor/bin/composer-require-checker check composer.json
 
   analyse:
     name: Static analysis

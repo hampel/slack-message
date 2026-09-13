@@ -1,5 +1,0 @@
-{
-    "symbol-whitelist": [
-        "GuzzleHttp\\Psr7\\HttpFactory"
-    ]
-}
