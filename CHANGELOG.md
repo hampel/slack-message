@@ -1,6 +1,21 @@
 CHANGELOG
 =========
 
+2.3.0 (unreleased)
+------------------
+
+### Added
+
+* PSR-17 factories are found automatically from `nyholm/psr7` and `laminas/laminas-diactoros` as well
+  as `guzzlehttp/psr7`
+
+### Changed
+
+* `SlackWebhook::discoverFactory()` returns the request factory and the stream factory as a pair. A
+  subclass overriding it must return the same
+* the exception thrown when no factory is found names the packages that are found automatically
+* `ext-json` is declared in `require`
+
 2.2.0 (2026-08-19)
 ------------------
 
