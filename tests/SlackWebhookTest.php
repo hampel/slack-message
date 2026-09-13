@@ -8,6 +8,8 @@ use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
 use Hampel\SlackMessage\SlackMessage;
 use Hampel\SlackMessage\SlackWebhook;
+use Hampel\SlackMessage\Tests\Fixtures\RequestOnlyFactory;
+use Hampel\SlackMessage\Tests\Fixtures\StreamOnlyFactory;
 use Mockery as m;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -322,8 +324,98 @@ class SlackWebhookTest extends TestCase
     {
         $webhook = new SlackWebhook($this->http);
 
+        [$request, $stream] = $this->factoriesOf($webhook);
+
+        $this->assertInstanceOf(HttpFactory::class, $request);
+        $this->assertSame($request, $stream, 'Guzzle ships one class for both jobs; it should be built once.');
+
         $webhook->send('https://hooks.slack.test/webhook', $this->message());
 
         $this->assertInstanceOf('GuzzleHttp\Psr7\Request', $this->request);
+    }
+
+    public function testASuppliedFactoryIsKeptWhenTheOtherIsFound()
+    {
+        $given = new RequestOnlyFactory();
+
+        [$request, $stream] = $this->factoriesOf(new SlackWebhook($this->http, $given));
+
+        $this->assertSame($given, $request);
+        $this->assertInstanceOf(HttpFactory::class, $stream);
+    }
+
+    public function testASplitPairIsBuiltAsTwoFactories()
+    {
+        $webhook = new class ($this->http) extends SlackWebhook {
+            protected const FACTORY_CANDIDATES = [
+                [RequestOnlyFactory::class, StreamOnlyFactory::class],
+            ];
+        };
+
+        [$request, $stream] = $this->factoriesOf($webhook);
+
+        $this->assertInstanceOf(RequestOnlyFactory::class, $request);
+        $this->assertInstanceOf(StreamOnlyFactory::class, $stream);
+
+        $webhook->send('https://hooks.slack.test/webhook', $this->message());
+
+        $this->assertSame('{"text":"Content","attachments":[]}', (string) $this->request->getBody());
+    }
+
+    /**
+     * Guzzle is always installed where this suite runs, so the not-found path is reached
+     * through the candidate list rather than by removing Guzzle.
+     */
+    public function testNothingFoundSaysWhatToPassAndWhatToInstall()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Psr\Http\Message\RequestFactoryInterface');
+        $this->expectExceptionMessage('nyholm/psr7');
+
+        new class ($this->http) extends SlackWebhook {
+            protected const FACTORY_CANDIDATES = [
+                ['No\Such\Factory', 'No\Such\Factory'],
+            ];
+        };
+    }
+
+    /**
+     * The instanceof is what makes finding a class by name safe.
+     */
+    public function testAClassThatExistsButIsNotAFactoryIsSkipped()
+    {
+        $this->expectException(\RuntimeException::class);
+
+        new class ($this->http) extends SlackWebhook {
+            protected const FACTORY_CANDIDATES = [
+                [\stdClass::class, \stdClass::class],
+            ];
+        };
+    }
+
+    public function testLaterCandidatesAreTriedWhenEarlierOnesAreAbsent()
+    {
+        $webhook = new class ($this->http) extends SlackWebhook {
+            protected const FACTORY_CANDIDATES = [
+                ['No\Such\Factory', 'No\Such\Factory'],
+                [\stdClass::class, \stdClass::class],
+                [RequestOnlyFactory::class, 'No\Such\Factory'],
+                [HttpFactory::class, HttpFactory::class],
+            ];
+        };
+
+        [$request] = $this->factoriesOf($webhook);
+
+        $this->assertInstanceOf(HttpFactory::class, $request);
+    }
+
+    /**
+     * @return array{\Psr\Http\Message\RequestFactoryInterface, \Psr\Http\Message\StreamFactoryInterface}
+     */
+    private function factoriesOf(SlackWebhook $webhook)
+    {
+        return (function () {
+            return [$this->requestFactory, $this->streamFactory];
+        })->call($webhook);
     }
 }

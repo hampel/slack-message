@@ -29,13 +29,14 @@ PHP 8.3 or later.
 
 You will need to supply a [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP client to send the Slack messages, along
 with the [PSR-17](https://www.php-fig.org/psr/psr-17/) factories used to build the request. Guzzle provides
-both, on either 7 or 8, and is discovered automatically when the factories are not supplied:
+both, on either 7 or 8:
 
 ```php
 $slack = new SlackWebhook(new GuzzleHttp\Client());
 ```
 
-Any other PSR-18 client works if you pass the factories yourself:
+The factories are found automatically when they are not supplied, from `guzzlehttp/psr7`, `nyholm/psr7` or
+`laminas/laminas-diactoros`, whichever is installed. Pass them yourself to choose, or when none of those is present:
 
 ```php
 $slack = new SlackWebhook($client, $requestFactory, $streamFactory);

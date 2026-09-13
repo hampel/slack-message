@@ -125,10 +125,13 @@ Three things about `SlackWebhook` that surprise people:
   Guzzle request options — `['json' => [...slack payload...]]` merged with `$message->http` — and
   a payload built that way may still be sitting in a queue written before the upgrade. A
   top-level `json` key is therefore treated as that wrapper and unwrapped.
-- **The client is PSR-18, the factories PSR-17.** When the factories are not supplied the
-  constructor looks for `GuzzleHttp\Psr7\HttpFactory` and throws if it is absent. PSR-18 has no
-  per-request options, so `SlackMessage::http()` now contributes only headers; timeouts and
-  proxies belong on the client.
+- **The client is PSR-18, the factories PSR-17.** When either factory is not supplied,
+  `discoverFactory()` tries Guzzle's, Nyholm's and Diactoros' in turn and throws if none is
+  installed. It finds them by **class name, checked with `instanceof`**, from the
+  `FACTORY_CANDIDATES` constant — never by writing the class, since none of them is a dependency,
+  which is what keeps `composer-require-checker` clean with no whitelist. The client itself is
+  always passed, never discovered. PSR-18 has no per-request options, so `SlackMessage::http()`
+  now contributes only headers; timeouts and proxies belong on the client.
 
 Per-attachment `color` falls back to the parent message's level colour, so the message level
 tints all attachments unless one overrides it.

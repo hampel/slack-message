@@ -95,7 +95,7 @@ $webhook = new SlackWebhook($client, $factory, $factory);
 
 check('a payload is built without an HTTP client', $webhook->buildPayload($message) === $expected);
 
-// Guzzle is only a suggestion, so with nothing to discover the constructor has to say so.
+// No PSR-17 implementation is a requirement, so with nothing to discover the constructor has to say so.
 try {
     new SlackWebhook($client);
 

@@ -18,6 +18,19 @@ use Psr\Http\Message\StreamFactoryInterface;
 class SlackWebhook
 {
     /**
+     * The PSR-17 implementations looked for when the constructor is given no factories, in the
+     * order they are tried: a request factory class and a stream factory class for each. Guzzle
+     * and Nyholm ship one class doing both jobs; Diactoros splits them.
+     *
+     * @var list<array{string, string}>
+     */
+    protected const FACTORY_CANDIDATES = [
+        ['GuzzleHttp\Psr7\HttpFactory', 'GuzzleHttp\Psr7\HttpFactory'],
+        ['Nyholm\Psr7\Factory\Psr17Factory', 'Nyholm\Psr7\Factory\Psr17Factory'],
+        ['Laminas\Diactoros\RequestFactory', 'Laminas\Diactoros\StreamFactory'],
+    ];
+
+    /**
      * The HTTP client instance.
      *
      * @var \Psr\Http\Client\ClientInterface
@@ -41,8 +54,8 @@ class SlackWebhook
     /**
      * Create a new Slack channel instance.
      *
-     * Any PSR-18 client will do. The PSR-17 factories are optional: when they are omitted
-     * and Guzzle is installed, its factory is used.
+     * Any PSR-18 client will do. The PSR-17 factories are optional: when either is omitted,
+     * Guzzle's, Nyholm's or Diactoros' is used, whichever is installed first.
      *
      * @param  \Psr\Http\Client\ClientInterface  $http
      * @param  \Psr\Http\Message\RequestFactoryInterface|null  $requestFactory
@@ -63,29 +76,47 @@ class SlackWebhook
             return;
         }
 
-        $factory = static::discoverFactory();
+        [$foundRequest, $foundStream] = static::discoverFactory();
 
-        $this->requestFactory = $requestFactory ?: $factory;
-        $this->streamFactory = $streamFactory ?: $factory;
+        $this->requestFactory = $requestFactory ?: $foundRequest;
+        $this->streamFactory = $streamFactory ?: $foundStream;
     }
 
     /**
-     * Find a PSR-17 factory to build requests with.
+     * Find PSR-17 factories to build requests with.
      *
-     * @return \Psr\Http\Message\RequestFactoryInterface&\Psr\Http\Message\StreamFactoryInterface
+     * By class name, then checked with instanceof, rather than by referencing the classes. No
+     * implementation is a dependency of this package, so none is written into it - which keeps
+     * composer-require-checker from seeing an undeclared symbol, and means a class that exists
+     * but is not a factory is skipped rather than returned.
+     *
+     * Returns a request factory and a stream factory, which are the same object when one class
+     * does both jobs.
+     *
+     * @return array{\Psr\Http\Message\RequestFactoryInterface, \Psr\Http\Message\StreamFactoryInterface}
      *
      * @throws \RuntimeException
      */
     protected static function discoverFactory()
     {
-        if (class_exists('GuzzleHttp\Psr7\HttpFactory')) {
-            return new \GuzzleHttp\Psr7\HttpFactory();
+        foreach (static::FACTORY_CANDIDATES as [$requestClass, $streamClass]) {
+            if (! class_exists($requestClass) || ! class_exists($streamClass)) {
+                continue;
+            }
+
+            $request = new $requestClass();
+            $stream = $requestClass === $streamClass ? $request : new $streamClass();
+
+            if ($request instanceof RequestFactoryInterface && $stream instanceof StreamFactoryInterface) {
+                return [$request, $stream];
+            }
         }
 
         throw new \RuntimeException(
             'No PSR-17 factory was supplied and none could be found. Pass a '
             . 'Psr\Http\Message\RequestFactoryInterface and a '
-            . 'Psr\Http\Message\StreamFactoryInterface to the constructor.'
+            . 'Psr\Http\Message\StreamFactoryInterface to the constructor, or install one of '
+            . 'guzzlehttp/psr7, nyholm/psr7 or laminas/laminas-diactoros, which are found automatically.'
         );
     }
 
