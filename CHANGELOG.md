@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+2.4.0 (unreleased)
+------------------
+
+### Changed
+
+* the minimum PHP version is now 8.1, down from 8.3
+* the development requirements are now `phpunit/phpunit ^10.5 || ^12.0`, `laravel/pint ^1.20` and
+  `hampel/rig ^1.2`, which are the versions of each that install on PHP 8.1
+* CI covers PHP 8.1 to 8.5, and resolves the lowest dependencies on 8.1
+* PHPStan covers the declared 8.1 to 8.5 range
+
 2.3.0 (2026-09-13)
 ------------------
 
