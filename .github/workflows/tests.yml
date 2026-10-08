@@ -23,7 +23,7 @@ jobs:
       matrix:
         # Every version the "php" constraint in composer.json claims. Keep the
         # two in step: an untested version here is an unbacked promise there.
-        php: ['8.3', '8.4', '8.5']
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -47,7 +47,11 @@ jobs:
 
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          php-version: '8.3'
+          # The declared floor, so this job resolves the whole toolchain low AND old at once:
+          # PHPUnit 10.5, PHPStan 2.2, Pint 1.20, rig 1.2. A floor job above the floor cannot
+          # see a dev constraint that is unsatisfiable there, which is the quiet kind of
+          # unbacked promise - it passes everywhere anyone looks.
+          php-version: '8.1'
           extensions: ""
           coverage: none
 
@@ -76,7 +80,9 @@ jobs:
 
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
-          php-version: '8.3'
+          # On the floor, because Guzzle 7 and PHP 8.1 together are not an arbitrary pair -
+          # they are what the consuming XenForo add-on actually runs on.
+          php-version: '8.1'
           extensions: ""
           coverage: none
 
@@ -96,6 +102,9 @@ jobs:
 
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
+          # NOT the floor, deliberately: composer-require-checker 4.20 requires PHP 8.3 and
+          # 4.21 and later require 8.4, so this job cannot follow the floor down. What it
+          # checks is the dependency graph, which is the same graph on every PHP version.
           php-version: '8.3'
           extensions: ""
           coverage: none
@@ -155,7 +164,7 @@ jobs:
       - run: vendor/bin/pint --test
 
       # Runs once rather than per version: phpstan.neon analyses the whole
-      # 8.3 - 8.5 range in a single pass, whatever PHP it runs on.
+      # 8.1 - 8.5 range in a single pass, whatever PHP it runs on.
       - run: vendor/bin/phpstan analyse --no-progress
 
       # A range reports only what is an error across the whole of it, so a deprecation
