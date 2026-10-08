@@ -165,12 +165,25 @@ PSR interface packages are required.
 
 ## Constraints worth knowing before editing
 
-- `composer.json` declares `"php": "^8.3"`, but the source predates it — no scalar type hints,
-  no return types, docblocks carry the types. That is about type declarations, not formatting:
-  PSR-12 has nothing to say about it and Pint will not add them. Match the surrounding style;
-  changing the supported versions is a policy decision, not a drive-by change.
+- **`composer.json` declares `"php": "^8.1"`, and that floor is derived rather than chosen.** It
+  is held down by the XenForo add-on that consumes this package, which supports PHP 8.1 because
+  XenForo's own supported range is deliberately broad, and which pins `config.platform.php` to its
+  floor — so a higher floor here is not merely inconvenient to it, it is uninstallable. Our policy
+  is that where we control both ends of a dependency, the floor of the dependency may not exceed
+  the floor of whatever depends on it. **So this is not drift to be tidied up against the PHP
+  release calendar: it moves when the add-on moves, and not before.** The same rule is why
+  `hampel/rig` floors at 8.1.
+- The source predates all of this anyway — no scalar type hints, no return types, docblocks carry
+  the types. That is about type declarations, not formatting: PSR-12 has nothing to say about it
+  and Pint will not add them. Match the surrounding style.
+- **Two dev constraints exist only to keep the floor testable**, and look wrong without that
+  reason: `phpunit/phpunit` is `^10.5 || ^12.0` and `laravel/pint` is `^1.20`, because neither
+  PHPUnit 12 nor Pint 1.30+ installs on 8.1. An install on 8.3 or later still resolves PHPUnit 12
+  and Pint 1.32, since Composer takes the highest release each constraint allows for the PHP in
+  front of it — so nothing is given up on a current machine. The floor CI job is the only thing
+  that resolves the old pair.
 - PHPStan runs at level 9 over `src` with no baseline, twice. `phpstan.neon` covers the declared
-  8.3 to 8.5 range; `phpstan-ceiling.neon` pins it at 8.5. A range reports only what is an error
+  8.1 to 8.5 range; `phpstan-ceiling.neon` pins it at 8.5. A range reports only what is an error
   across the whole of it, so anything deprecated above the floor is invisible to the first pass —
   PHP 8.4's implicitly-nullable parameter deprecation shipped in 2.0.0 and 2.1.0 that way. Keep
   both clean.

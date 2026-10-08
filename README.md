@@ -25,7 +25,7 @@ under the [MIT license](https://opensource.org/licenses/MIT).
 Prerequisites
 -------------
 
-PHP 8.3 or later.
+PHP 8.1 or later.
 
 You will need to supply a [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP client to send the Slack messages, along
 with the [PSR-17](https://www.php-fig.org/psr/psr-17/) factories used to build the request. Guzzle provides
